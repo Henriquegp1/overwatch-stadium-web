@@ -6,19 +6,21 @@ import { useRouter } from "next/navigation";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
   const router = useRouter();
 
-  // Se já tiver feito login antes, pula direto pro painel!
   useEffect(() => {
     const token = localStorage.getItem("stadium_token");
-    if (token) {
-      router.replace("/dashboard");
+    const cargo = localStorage.getItem("stadium_cargo");
+    if (token && cargo) {
+      router.replace(cargo === "admin" ? "/admin" : "/dashboard");
     }
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setErro("");
+
     try {
       const resposta = await fetch("http://localhost:8000/api/usuarios/login", {
         method: "POST",
@@ -29,13 +31,20 @@ export default function LoginPage() {
       const dados = await resposta.json();
 
       if (resposta.ok) {
+        // Decodifica o payload do JWT para pegar o cargo
+        // O token é base64: header.payload.signature
+        const payload = JSON.parse(atob(dados.access_token.split(".")[1]));
+
         localStorage.setItem("stadium_token", dados.access_token);
-        router.replace("/dashboard"); // Teletransporte suave
+        localStorage.setItem("stadium_cargo", payload.cargo);
+
+        // Redireciona para o painel correto baseado no cargo
+        router.replace(payload.cargo === "admin" ? "/admin" : "/dashboard");
       } else {
-        alert("Erro no login: " + dados.detail);
+        setErro(dados.detail || "Email ou senha incorretos.");
       }
-    } catch (erro) {
-      alert("Erro ao conectar com o servidor.");
+    } catch {
+      setErro("Não foi possível conectar ao servidor.");
     }
   };
 
@@ -44,19 +53,39 @@ export default function LoginPage() {
       <div className="bg-neutral-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-neutral-700">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Overwatch Stadium</h1>
-          <p className="text-neutral-400">Painel do Capitão</p>
+          <p className="text-neutral-400">Acesse sua conta</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">E-mail</label>
-            <input type="email" required className="w-full px-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg text-white focus:outline-none focus:border-orange-500" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input
+              type="email"
+              required
+              className="w-full px-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg text-white focus:outline-none focus:border-orange-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">Senha</label>
-            <input type="password" required className="w-full px-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg text-white focus:outline-none focus:border-orange-500" value={senha} onChange={(e) => setSenha(e.target.value)} />
+            <input
+              type="password"
+              required
+              className="w-full px-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg text-white focus:outline-none focus:border-orange-500"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+            />
           </div>
-          <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200">
+
+          {erro && (
+            <p className="text-red-400 text-sm text-center">{erro}</p>
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200"
+          >
             Acessar Sistema
           </button>
         </form>

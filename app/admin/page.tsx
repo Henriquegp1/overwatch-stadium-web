@@ -23,7 +23,7 @@ export default function AdminPage() {
 
   const buscarPartidasPendentes = async (token: string) => {
     try {
-      const resposta = await fetch("http://localhost:8000/api/partidas/", {
+      const resposta = await fetch("https://web-production-aeb1b.up.railway.app/api/partidas/", {
         headers: { "Authorization": `Bearer ${token}` },
       });
 
@@ -50,7 +50,7 @@ export default function AdminPage() {
   const getToken = () => localStorage.getItem("stadium_token") ?? "";
 
   const aprovar = async (id: number) => {
-    await fetch(`http://localhost:8000/api/partidas/${id}/aprovar`, {
+    await fetch(`https://web-production-aeb1b.up.railway.app/api/partidas/${id}/aprovar`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${getToken()}` },
     });
@@ -58,7 +58,7 @@ export default function AdminPage() {
   };
 
   const rejeitar = async (id: number) => {
-    await fetch(`http://localhost:8000/api/partidas/${id}/rejeitar`, {
+    await fetch(`https://web-production-aeb1b.up.railway.app/api/partidas/${id}/rejeitar`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${getToken()}` },
     });
@@ -103,7 +103,7 @@ export default function AdminPage() {
               >
                 <div className="w-full md:w-1/2">
                   <img
-                    src={`http://localhost:8000/uploads/print_partida_${partida.id}.png?t=${Date.now()}`}
+                    src={`https://web-production-aeb1b.up.railway.app/uploads/print_partida_${partida.id}.png?t=${Date.now()}`}
                     alt="Print enviado pelo capitão"
                     className="w-full rounded-lg border-2 border-neutral-600 shadow-lg object-contain max-h-80"
                   />

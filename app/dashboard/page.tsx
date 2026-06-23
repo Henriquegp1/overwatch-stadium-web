@@ -28,7 +28,7 @@ export default function DashboardPage() {
 
   const buscarPartidas = async (token: string) => {
     try {
-      const resposta = await fetch("http://localhost:8000/api/partidas/", {
+      const resposta = await fetch("https://web-production-aeb1b.up.railway.app/api/partidas/", {
         headers: { "Authorization": `Bearer ${token}` },
       });
 
@@ -61,7 +61,7 @@ export default function DashboardPage() {
     try {
       const token = localStorage.getItem("stadium_token") ?? "";
 
-      const resposta = await fetch(`http://localhost:8000/api/partidas/${partidaId}/upload-print`, {
+      const resposta = await fetch(`https://web-production-aeb1b.up.railway.app/api/partidas/${partidaId}/upload-print`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` },
         body: formData,

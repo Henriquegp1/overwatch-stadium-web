@@ -22,7 +22,7 @@ export default function LoginPage() {
     setErro("");
 
     try {
-      const resposta = await fetch("http://localhost:8000/api/usuarios/login", {
+      const resposta = await fetch("https://web-production-aeb1b.up.railway.app/api/usuarios/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, senha }),

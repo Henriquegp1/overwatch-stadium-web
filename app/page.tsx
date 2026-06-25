@@ -89,6 +89,14 @@ export default function LoginPage() {
             Acessar Sistema
           </button>
         </form>
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => router.push("/publico")}
+            className="text-neutral-400 hover:text-white text-sm transition-colors"
+          >
+            Ver área pública →
+          </button>
+        </div>
       </div>
     </main>
   );

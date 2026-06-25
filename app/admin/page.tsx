@@ -36,11 +36,11 @@ export default function AdminMenuPage() {
       icone: "📝",
     },
     {
-      titulo: "Aprovação de Prints",
-      descricao: "Validar resultados 3x0 enviados pelos capitães",
-      rota: "/admin/partidas",
-      cor: "border-orange-500 hover:bg-orange-900/30",
-      icone: "📋",
+      titulo: "Área Pública",
+      descricao: "Ver a página pública do torneio como os participantes veem",
+      rota: "/publico",
+      cor: "border-blue-500 hover:bg-blue-900/30",
+      icone: "🌐",
     },
   ];
 

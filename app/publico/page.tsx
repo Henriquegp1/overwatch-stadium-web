@@ -276,7 +276,7 @@ export default function PublicoPage() {
                         {/* Player de Vídeo */}
                         <div className="aspect-video bg-surface-2 rounded-xl overflow-hidden border border-line-strong shadow-lg hover:border-ow-orange/50 transition-colors">
                           <iframe
-                            src={`https://player.twitch.tv/?channel=${streamer.canal}&parent=localhost&parent=web-production-aeb1b.up.railway.app&parent=https://overwatch-stadium-web.vercel.app/`}
+                            src={`https://player.twitch.tv/?channel=${streamer.canal}&parent=localhost&parent=web-production-aeb1b.up.railway.app&parent=https:overwatch-stadium-web.vercel.app`}
                             height="100%"
                             width="100%"
                             allowFullScreen

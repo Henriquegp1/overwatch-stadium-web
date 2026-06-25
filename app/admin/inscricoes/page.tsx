@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const API = "https://web-production-aeb1b.up.railway.app";
@@ -44,6 +44,25 @@ const LABEL_DIA: Record<string, string> = {
   quinta:"Qui", sexta:"Sex", sabado:"Sáb", domingo:"Dom"
 };
 
+const ROLE_COLOR: Record<string, string> = {
+  tank: "bg-role-tank/15 text-role-tank border-role-tank/30",
+  dps: "bg-role-dps/15 text-role-dps border-role-dps/30",
+  damage: "bg-role-dps/15 text-role-dps border-role-dps/30",
+  support: "bg-role-support/15 text-role-support border-role-support/30",
+  flex: "bg-fg-muted/15 text-fg-muted border-fg-muted/30",
+};
+
+function rankColor(rank: string): string {
+  const r = rank.toLowerCase();
+  if (r.startsWith("bronze")) return "text-[#cd7f32]";
+  if (r.startsWith("prata")) return "text-[#c0c0c0]";
+  if (r.startsWith("ouro")) return "text-[#facc15]";
+  if (r.startsWith("platina")) return "text-ow-blue";
+  if (r.startsWith("diamante")) return "text-ow-blue-glow";
+  if (r.startsWith("mestre")) return "text-ow-orange";
+  return "text-fg-muted";
+}
+
 export default function AdminInscricoesPage() {
   const router = useRouter();
   const [inscricoes, setInscricoes] = useState<Inscricao[]>([]);
@@ -71,6 +90,7 @@ export default function AdminInscricoesPage() {
       return;
     }
     buscar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   const buscar = async () => {
@@ -117,15 +137,11 @@ export default function AdminInscricoesPage() {
   };
 
   const toggleHorario = (h: string) => {
-    setEditHorarios(prev =>
-      prev.includes(h) ? prev.filter(x => x !== h) : [...prev, h]
-    );
+    setEditHorarios(prev => prev.includes(h) ? prev.filter(x => x !== h) : [...prev, h]);
   };
 
   const toggleDia = (d: string) => {
-    setEditDias(prev =>
-      prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]
-    );
+    setEditDias(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
   };
 
   const atualizarJogador = (index: number, campo: keyof Jogador, valor: string) => {
@@ -170,328 +186,404 @@ export default function AdminInscricoesPage() {
     }
   };
 
-  const inscricoesFiltradas = inscricoes.filter(i => {
+  const inscricoesFiltradas = useMemo(() => inscricoes.filter(i => {
     if (filtro === "verificados") return i.verificado;
     if (filtro === "pendentes") return !i.verificado;
     if (filtro === "desclassificados") return i.tem_jogador_desclassificado;
     return true;
-  });
+  }), [inscricoes, filtro]);
+
+  const stats = useMemo(() => ({
+    total: inscricoes.length,
+    pendentes: inscricoes.filter(i => !i.verificado).length,
+    verificados: inscricoes.filter(i => i.verificado).length,
+    desclassificados: inscricoes.filter(i => i.tem_jogador_desclassificado).length,
+  }), [inscricoes]);
+
+  const filtros: { id: typeof filtro; label: string; count: number; cor: string }[] = [
+    { id: "todos", label: "Todos", count: stats.total, cor: "ow-orange" },
+    { id: "pendentes", label: "Pendentes", count: stats.pendentes, cor: "warning" },
+    { id: "verificados", label: "Verificados", count: stats.verificados, cor: "success" },
+    { id: "desclassificados", label: "Desclass.", count: stats.desclassificados, cor: "danger" },
+  ];
 
   return (
-    <main className="min-h-screen bg-neutral-900 p-8 text-white">
+    <main className="min-h-screen p-6 md:p-10 text-fg">
       <div className="max-w-6xl mx-auto">
-
-        <header className="bg-purple-900 p-6 rounded-xl border border-purple-500 mb-8 shadow-lg flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Inscrições</h1>
-            <p className="text-purple-300">Overwatch Stadium — Painel Admin</p>
+        {/* Header */}
+        <header className="relative overflow-hidden rounded-2xl border border-line-strong mb-8">
+          <div className="absolute inset-0 hero-grad" />
+          <div className="relative p-6 md:p-8 flex flex-wrap justify-between items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-display text-xl font-bold text-background"
+                style={{ background: "var(--grad-orange)" }}
+              >
+                IN
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-ow-orange font-semibold">
+                  Painel admin
+                </p>
+                <h1 className="text-display text-3xl font-bold uppercase">Inscrições</h1>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push("/admin")}
+              className="text-sm font-semibold border border-line-strong hover:border-ow-orange/60 hover:text-ow-orange text-fg-muted px-4 py-2 rounded-lg transition-colors"
+            >
+              ← Voltar
+            </button>
           </div>
-          <button
-            onClick={() => router.push("/admin")}
-            className="bg-neutral-700 hover:bg-neutral-600 text-white font-semibold py-2 px-4 rounded-lg border border-neutral-600 transition-colors"
-          >
-            ← Voltar
-          </button>
         </header>
 
+        {/* Mensagens */}
         {erro && (
-          <div className="bg-red-900 border border-red-500 text-red-200 p-4 rounded-lg mb-6">
+          <div className="bg-danger/10 border border-danger/40 text-danger px-4 py-3 rounded-lg mb-4 text-sm">
             {erro}
           </div>
         )}
         {sucesso && (
-          <div className="bg-green-900 border border-green-500 text-green-200 p-4 rounded-lg mb-6">
+          <div className="bg-success/10 border border-success/40 text-success px-4 py-3 rounded-lg mb-4 text-sm">
             {sucesso}
           </div>
         )}
 
-        {/* Filtros */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          {(["todos","pendentes","verificados","desclassificados"] as const).map(f => (
-            <button
-              key={f}
-              onClick={() => setFiltro(f)}
-              className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors capitalize ${
-                filtro === f
-                  ? "bg-purple-600 text-white"
-                  : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
-              }`}
-            >
-              {f === "todos" && `Todos (${inscricoes.length})`}
-              {f === "pendentes" && `Pendentes (${inscricoes.filter(i => !i.verificado).length})`}
-              {f === "verificados" && `Verificados (${inscricoes.filter(i => i.verificado).length})`}
-              {f === "desclassificados" && `Desclassificados (${inscricoes.filter(i => i.tem_jogador_desclassificado).length})`}
-            </button>
-          ))}
-        </div>
-
-        {carregando ? (
-          <p className="text-neutral-400">Carregando...</p>
-        ) : inscricoesFiltradas.length === 0 ? (
-          <p className="text-neutral-400">Nenhuma inscrição encontrada.</p>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {inscricoesFiltradas.map(insc => (
-              <div
-                key={insc.id}
-                className={`bg-neutral-800 rounded-xl border transition-colors ${
-                  insc.tem_jogador_desclassificado
-                    ? "border-red-500"
-                    : insc.verificado
-                    ? "border-green-600"
-                    : "border-neutral-700"
+        {/* Filtros / métricas combinados */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {filtros.map(f => {
+            const ativo = filtro === f.id;
+            const corClasse =
+              f.cor === "ow-orange" ? "text-ow-orange border-ow-orange" :
+              f.cor === "warning" ? "text-warning border-warning" :
+              f.cor === "success" ? "text-success border-success" :
+              "text-danger border-danger";
+            return (
+              <button
+                key={f.id}
+                onClick={() => setFiltro(f.id)}
+                className={`surface-card p-4 text-left transition-all border-2 ${
+                  ativo ? `${corClasse} bg-surface-2` : "border-transparent hover:border-line-strong"
                 }`}
               >
-                {/* Cabeçalho da equipe */}
-                <div className="p-5 flex flex-wrap items-center gap-4 justify-between">
-                  <div className="flex items-center gap-3">
+                <p className="text-[10px] uppercase tracking-widest text-fg-dim font-semibold">
+                  {f.label}
+                </p>
+                <p className={`text-display text-3xl font-bold mt-1 ${ativo ? corClasse.split(" ")[0] : "text-fg"}`}>
+                  {f.count}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Lista */}
+        {carregando ? (
+          <div className="grid gap-3">
+            <div className="skeleton h-24" />
+            <div className="skeleton h-24" />
+            <div className="skeleton h-24" />
+          </div>
+        ) : inscricoesFiltradas.length === 0 ? (
+          <div className="surface-card p-10 text-center text-fg-muted">
+            Nenhuma inscrição encontrada.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {inscricoesFiltradas.map(insc => {
+              const aberto = expandido === insc.id;
+              const emEdicao = editando === insc.id;
+              const corBorda = insc.tem_jogador_desclassificado
+                ? "var(--danger)"
+                : insc.verificado
+                ? "var(--success)"
+                : "var(--ow-orange)";
+
+              return (
+                <article
+                  key={insc.id}
+                  className="surface-card relative overflow-hidden"
+                >
+                  <span
+                    className="absolute left-0 top-0 bottom-0 w-1"
+                    style={{ background: corBorda }}
+                  />
+
+                  {/* Cabeçalho */}
+                  <div className="p-5 pl-6 flex flex-wrap items-center gap-4 justify-between">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white text-lg">{insc.nome}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h2 className="text-display text-lg font-bold uppercase">{insc.nome}</h2>
                         {insc.verificado && (
-                          <span className="bg-green-800 text-green-300 text-xs px-2 py-0.5 rounded-full font-semibold">
+                          <span className="bg-success/15 text-success border border-success/30 text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-wider">
                             ✓ Verificado
                           </span>
                         )}
                         {insc.tem_jogador_desclassificado && (
-                          <span className="bg-red-900 text-red-300 text-xs px-2 py-0.5 rounded-full font-semibold">
+                          <span className="bg-danger/15 text-danger border border-danger/30 text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-wider">
                             ⚠ Desclassificado
                           </span>
                         )}
                       </div>
-                      <p className="text-neutral-400 text-sm">
-                        Capitão: {insc.nome_capitao} · Pontuação: <span className="text-purple-400 font-bold">{insc.pontuacao_rank} pts</span>
+                      <p className="text-fg-muted text-sm mt-1">
+                        Capitão · <span className="text-fg">{insc.nome_capitao}</span>
+                        <span className="text-fg-dim mx-2">·</span>
+                        <span className="text-ow-orange font-display font-bold">{insc.pontuacao_rank}</span>
+                        <span className="text-fg-dim text-xs ml-1">pts</span>
                       </p>
                     </div>
+
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        onClick={() => toggleVerificado(insc.id)}
+                        className={`px-3 py-2 rounded-lg font-semibold text-xs uppercase tracking-wider transition-colors border ${
+                          insc.verificado
+                            ? "bg-success/15 hover:bg-success/25 text-success border-success/40"
+                            : "bg-surface-2 hover:bg-success/10 text-fg-muted hover:text-success border-line"
+                        }`}
+                      >
+                        {insc.verificado ? "Verificado" : "Verificar"}
+                      </button>
+                      <button
+                        onClick={() => setExpandido(aberto ? null : insc.id)}
+                        className="bg-surface-2 hover:bg-surface-2/70 text-fg px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors border border-line"
+                      >
+                        {aberto ? "Fechar" : "Detalhes"}
+                      </button>
+                      <button
+                        onClick={() => emEdicao ? setEditando(null) : abrirEdicao(insc)}
+                        className="bg-ow-orange/15 hover:bg-ow-orange/25 text-ow-orange border border-ow-orange/40 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors"
+                      >
+                        {emEdicao ? "Cancelar" : "Editar"}
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="flex gap-2 flex-wrap">
-                    <button
-                      onClick={() => toggleVerificado(insc.id)}
-                      className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-                        insc.verificado
-                          ? "bg-green-800 hover:bg-green-700 text-green-200"
-                          : "bg-neutral-700 hover:bg-green-800 text-neutral-300 hover:text-green-200"
-                      }`}
-                    >
-                      {insc.verificado ? "✓ Verificado" : "Marcar como verificado"}
-                    </button>
-                    <button
-                      onClick={() => setExpandido(expandido === insc.id ? null : insc.id)}
-                      className="bg-neutral-700 hover:bg-neutral-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                    >
-                      {expandido === insc.id ? "▲ Fechar" : "▼ Ver jogadores"}
-                    </button>
-                    <button
-                      onClick={() => editando === insc.id ? setEditando(null) : abrirEdicao(insc)}
-                      className="bg-purple-700 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                    >
-                      {editando === insc.id ? "Cancelar" : "Editar"}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Expandido: visualização */}
-                {expandido === insc.id && editando !== insc.id && (
-                  <div className="border-t border-neutral-700 p-5">
-                    {/* Disponibilidade */}
-                    <div className="mb-4 flex gap-6 flex-wrap">
-                      <div>
-                        <p className="text-xs text-neutral-500 mb-1 uppercase tracking-wide">Horários</p>
-                        <div className="flex gap-1">
-                          {insc.horarios.length > 0
-                            ? insc.horarios.map(h => (
-                                <span key={h} className="bg-purple-900 text-purple-300 px-2 py-0.5 rounded text-xs font-semibold">
-                                  {LABEL_HORARIO[h] ?? h}
-                                </span>
-                              ))
-                            : <span className="text-neutral-500 text-xs">—</span>
-                          }
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-xs text-neutral-500 mb-1 uppercase tracking-wide">Dias</p>
-                        <div className="flex gap-1 flex-wrap">
-                          {insc.dias.length > 0
-                            ? insc.dias.map(d => (
-                                <span key={d} className="bg-neutral-700 text-neutral-300 px-2 py-0.5 rounded text-xs font-semibold">
-                                  {LABEL_DIA[d] ?? d}
-                                </span>
-                              ))
-                            : <span className="text-neutral-500 text-xs">—</span>
-                          }
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Jogadores */}
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-neutral-500 border-b border-neutral-700 text-xs uppercase tracking-wide">
-                          <th className="text-left py-2 px-2">BattleTag</th>
-                          <th className="text-left py-2 px-2">Role</th>
-                          <th className="text-left py-2 px-2">Rank</th>
-                          <th className="text-left py-2 px-2">Pts</th>
-                          <th className="text-left py-2 px-2">Discord</th>
-                          <th className="text-left py-2 px-2">Tipo</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {insc.jogadores.map((j, idx) => (
-                          <tr
-                            key={idx}
-                            className={`border-b border-neutral-700 ${j.desclassificado ? "bg-red-950/30" : ""}`}
-                          >
-                            <td className="py-2 px-2 font-semibold text-white">
-                              {j.battletag}
-                              {j.desclassificado && <span className="ml-2 text-red-400 text-xs">⚠</span>}
-                            </td>
-                            <td className="py-2 px-2 text-neutral-300">{j.role}</td>
-                            <td className="py-2 px-2 text-neutral-300">{j.rank}</td>
-                            <td className="py-2 px-2 text-purple-400 font-bold">{j.pontos_rank}</td>
-                            <td className="py-2 px-2 text-neutral-400">{j.discord ?? "—"}</td>
-                            <td className="py-2 px-2">
-                              {j.reserva
-                                ? <span className="text-neutral-500 text-xs">Reserva</span>
-                                : <span className="text-blue-400 text-xs">Titular</span>
-                              }
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Expandido: edição */}
-                {editando === insc.id && (
-                  <div className="border-t border-neutral-700 p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div>
-                        <label className="block text-xs text-neutral-400 mb-1">Nome da equipe</label>
-                        <input
-                          className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-                          value={editNome}
-                          onChange={e => setEditNome(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-neutral-400 mb-1">BattleTag do capitão</label>
-                        <input
-                          className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
-                          value={editCapitao}
-                          onChange={e => setEditCapitao(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Horários */}
-                    <div className="mb-4">
-                      <p className="text-xs text-neutral-400 mb-2">Horários</p>
-                      <div className="flex gap-2">
-                        {HORARIOS.map(h => (
-                          <button
-                            key={h}
-                            onClick={() => toggleHorario(h)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                              editHorarios.includes(h)
-                                ? "bg-purple-600 text-white"
-                                : "bg-neutral-700 text-neutral-400 hover:bg-neutral-600"
-                            }`}
-                          >
-                            {LABEL_HORARIO[h]}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Dias */}
-                    <div className="mb-6">
-                      <p className="text-xs text-neutral-400 mb-2">Dias</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {DIAS.map(d => (
-                          <button
-                            key={d}
-                            onClick={() => toggleDia(d)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                              editDias.includes(d)
-                                ? "bg-purple-600 text-white"
-                                : "bg-neutral-700 text-neutral-400 hover:bg-neutral-600"
-                            }`}
-                          >
-                            {LABEL_DIA[d]}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Jogadores */}
-                    <p className="text-xs text-neutral-400 mb-3 uppercase tracking-wide">Jogadores</p>
-                    <div className="flex flex-col gap-3 mb-6">
-                      {editJogadores.map((j, idx) => (
-                        <div key={idx} className="bg-neutral-900 rounded-lg p-3 border border-neutral-700">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded ${j.reserva ? "bg-neutral-700 text-neutral-400" : "bg-blue-900 text-blue-300"}`}>
-                              {j.reserva ? "Reserva" : `Titular ${idx + 1}`}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            <div>
-                              <label className="block text-xs text-neutral-500 mb-1">BattleTag</label>
-                              <input
-                                className="w-full px-2 py-1.5 bg-neutral-800 border border-neutral-700 rounded text-white text-sm focus:outline-none focus:border-purple-500"
-                                value={j.battletag}
-                                onChange={e => atualizarJogador(idx, "battletag", e.target.value)}
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs text-neutral-500 mb-1">Role</label>
-                              <select
-                                className="w-full px-2 py-1.5 bg-neutral-800 border border-neutral-700 rounded text-white text-sm focus:outline-none focus:border-purple-500"
-                                value={j.role}
-                                onChange={e => atualizarJogador(idx, "role", e.target.value)}
-                              >
-                                {["tank","damage","support","flex"].map(r => (
-                                  <option key={r} value={r}>{r}</option>
-                                ))}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-xs text-neutral-500 mb-1">Rank</label>
-                              <select
-                                className="w-full px-2 py-1.5 bg-neutral-800 border border-neutral-700 rounded text-white text-sm focus:outline-none focus:border-purple-500"
-                                value={j.rank}
-                                onChange={e => atualizarJogador(idx, "rank", e.target.value)}
-                              >
-                                {RANKS.map(r => (
-                                  <option key={r} value={r}>{r}</option>
-                                ))}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-xs text-neutral-500 mb-1">Discord</label>
-                              <input
-                                className="w-full px-2 py-1.5 bg-neutral-800 border border-neutral-700 rounded text-white text-sm focus:outline-none focus:border-purple-500"
-                                value={j.discord ?? ""}
-                                onChange={e => atualizarJogador(idx, "discord", e.target.value)}
-                              />
-                            </div>
+                  {/* Detalhes (somente leitura) */}
+                  {aberto && !emEdicao && (
+                    <div className="border-t border-line p-5 pl-6">
+                      <div className="mb-4 flex gap-6 flex-wrap">
+                        <div>
+                          <p className="text-[10px] text-fg-dim mb-1.5 uppercase tracking-widest font-semibold">Horários</p>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {insc.horarios.length > 0
+                              ? insc.horarios.map(h => (
+                                  <span key={h} className="bg-ow-orange/10 text-ow-orange border border-ow-orange/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
+                                    {LABEL_HORARIO[h] ?? h}
+                                  </span>
+                                ))
+                              : <span className="text-fg-dim text-xs">—</span>
+                            }
                           </div>
                         </div>
-                      ))}
-                    </div>
+                        <div>
+                          <p className="text-[10px] text-fg-dim mb-1.5 uppercase tracking-widest font-semibold">Dias</p>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {insc.dias.length > 0
+                              ? insc.dias.map(d => (
+                                  <span key={d} className="bg-surface-2 text-fg-muted border border-line px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
+                                    {LABEL_DIA[d] ?? d}
+                                  </span>
+                                ))
+                              : <span className="text-fg-dim text-xs">—</span>
+                            }
+                          </div>
+                        </div>
+                      </div>
 
-                    <button
-                      onClick={salvarEdicao}
-                      disabled={salvando}
-                      className="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-                    >
-                      {salvando ? "Salvando..." : "Salvar alterações"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="text-fg-dim border-b border-line text-[10px] uppercase tracking-widest">
+                              <th className="text-left py-2 px-2 font-semibold">BattleTag</th>
+                              <th className="text-left py-2 px-2 font-semibold">Role</th>
+                              <th className="text-left py-2 px-2 font-semibold">Rank</th>
+                              <th className="text-left py-2 px-2 font-semibold">Pts</th>
+                              <th className="text-left py-2 px-2 font-semibold">Discord</th>
+                              <th className="text-left py-2 px-2 font-semibold">Tipo</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {insc.jogadores.map((j, idx) => {
+                              const roleK = j.role?.toLowerCase() ?? "flex";
+                              return (
+                                <tr
+                                  key={idx}
+                                  className={`border-b border-line/60 ${j.desclassificado ? "bg-danger/5" : ""}`}
+                                >
+                                  <td className="py-2.5 px-2 font-mono text-fg">
+                                    {j.battletag}
+                                    {j.desclassificado && <span className="ml-2 text-danger text-xs">⚠</span>}
+                                  </td>
+                                  <td className="py-2.5 px-2">
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${ROLE_COLOR[roleK] ?? ROLE_COLOR.flex}`}>
+                                      {roleK}
+                                    </span>
+                                  </td>
+                                  <td className={`py-2.5 px-2 font-semibold ${rankColor(j.rank)}`}>{j.rank}</td>
+                                  <td className="py-2.5 px-2 text-ow-orange font-display font-bold tabular-nums">{j.pontos_rank}</td>
+                                  <td className="py-2.5 px-2 text-fg-muted font-mono text-xs">{j.discord ?? "—"}</td>
+                                  <td className="py-2.5 px-2">
+                                    {j.reserva
+                                      ? <span className="text-fg-dim text-[10px] uppercase tracking-wider">Reserva</span>
+                                      : <span className="text-ow-blue text-[10px] uppercase tracking-wider font-semibold">Titular</span>
+                                    }
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Edição */}
+                  {emEdicao && (
+                    <div className="border-t border-line p-5 pl-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                          <label className="block text-[10px] text-fg-dim mb-1.5 uppercase tracking-widest font-semibold">Nome da equipe</label>
+                          <input
+                            className="w-full px-3 py-2 bg-surface-2 border border-line rounded-lg text-fg text-sm focus:outline-none focus:border-ow-orange transition-colors"
+                            value={editNome}
+                            onChange={e => setEditNome(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-fg-dim mb-1.5 uppercase tracking-widest font-semibold">BattleTag do capitão</label>
+                          <input
+                            className="w-full px-3 py-2 bg-surface-2 border border-line rounded-lg text-fg text-sm font-mono focus:outline-none focus:border-ow-orange transition-colors"
+                            value={editCapitao}
+                            onChange={e => setEditCapitao(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mb-5">
+                        <p className="text-[10px] text-fg-dim mb-2 uppercase tracking-widest font-semibold">Horários</p>
+                        <div className="flex gap-2 flex-wrap">
+                          {HORARIOS.map(h => {
+                            const sel = editHorarios.includes(h);
+                            return (
+                              <button
+                                key={h}
+                                onClick={() => toggleHorario(h)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border ${
+                                  sel
+                                    ? "bg-ow-orange/20 text-ow-orange border-ow-orange/50"
+                                    : "bg-surface-2 text-fg-muted border-line hover:border-line-strong"
+                                }`}
+                              >
+                                {LABEL_HORARIO[h]}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="mb-6">
+                        <p className="text-[10px] text-fg-dim mb-2 uppercase tracking-widest font-semibold">Dias</p>
+                        <div className="flex gap-2 flex-wrap">
+                          {DIAS.map(d => {
+                            const sel = editDias.includes(d);
+                            return (
+                              <button
+                                key={d}
+                                onClick={() => toggleDia(d)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border ${
+                                  sel
+                                    ? "bg-ow-blue/20 text-ow-blue border-ow-blue/50"
+                                    : "bg-surface-2 text-fg-muted border-line hover:border-line-strong"
+                                }`}
+                              >
+                                {LABEL_DIA[d]}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <p className="text-[10px] text-fg-dim mb-3 uppercase tracking-widest font-semibold">Jogadores</p>
+                      <div className="flex flex-col gap-3 mb-6">
+                        {editJogadores.map((j, idx) => (
+                          <div key={idx} className="surface-elevated p-3">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border ${
+                                j.reserva
+                                  ? "bg-fg-muted/15 text-fg-muted border-fg-muted/30"
+                                  : "bg-ow-blue/15 text-ow-blue border-ow-blue/30"
+                              }`}>
+                                {j.reserva ? "Reserva" : `Titular ${idx + 1}`}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              <div>
+                                <label className="block text-[10px] text-fg-dim mb-1 uppercase tracking-wider">BattleTag</label>
+                                <input
+                                  className="w-full px-2 py-1.5 bg-surface border border-line rounded text-fg text-sm font-mono focus:outline-none focus:border-ow-orange"
+                                  value={j.battletag}
+                                  onChange={e => atualizarJogador(idx, "battletag", e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-fg-dim mb-1 uppercase tracking-wider">Role</label>
+                                <select
+                                  className="w-full px-2 py-1.5 bg-surface border border-line rounded text-fg text-sm focus:outline-none focus:border-ow-orange"
+                                  value={j.role}
+                                  onChange={e => atualizarJogador(idx, "role", e.target.value)}
+                                >
+                                  {["tank","damage","support","flex"].map(r => (
+                                    <option key={r} value={r}>{r}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-fg-dim mb-1 uppercase tracking-wider">Rank</label>
+                                <select
+                                  className="w-full px-2 py-1.5 bg-surface border border-line rounded text-fg text-sm focus:outline-none focus:border-ow-orange"
+                                  value={j.rank}
+                                  onChange={e => atualizarJogador(idx, "rank", e.target.value)}
+                                >
+                                  {RANKS.map(r => (
+                                    <option key={r} value={r}>{r}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-fg-dim mb-1 uppercase tracking-wider">Discord</label>
+                                <input
+                                  className="w-full px-2 py-1.5 bg-surface border border-line rounded text-fg text-sm focus:outline-none focus:border-ow-orange"
+                                  value={j.discord ?? ""}
+                                  onChange={e => atualizarJogador(idx, "discord", e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => setEditando(null)}
+                          className="px-4 py-2 rounded-lg bg-surface-2 hover:bg-surface-2/70 text-fg-muted border border-line text-sm font-semibold uppercase tracking-wider transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={salvarEdicao}
+                          disabled={salvando}
+                          className="px-5 py-2 rounded-lg text-background border border-ow-orange text-sm font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed glow-orange"
+                          style={{ background: "var(--grad-orange)" }}
+                        >
+                          {salvando ? "Salvando..." : "Salvar alterações"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
           </div>
         )}
       </div>

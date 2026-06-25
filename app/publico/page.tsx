@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const API = "https://web-production-aeb1b.up.railway.app";
 
@@ -42,11 +42,60 @@ type Grupos = Record<string, { nome: string; vitorias: number; derrotas: number;
 
 type Aba = "equipes" | "partidas" | "grupos";
 
-const ROLE_ICON: Record<string, string> = {
-  tank: "🛡️",
-  dps: "⚔️",
-  support: "💚",
+const ROLE_COLOR: Record<string, string> = {
+  tank: "bg-role-tank/15 text-role-tank border-role-tank/30",
+  dps: "bg-role-dps/15 text-role-dps border-role-dps/30",
+  damage: "bg-role-dps/15 text-role-dps border-role-dps/30",
+  support: "bg-role-support/15 text-role-support border-role-support/30",
+  flex: "bg-fg-muted/15 text-fg-muted border-fg-muted/30",
 };
+
+const ROLE_LABEL: Record<string, string> = {
+  tank: "TANK",
+  dps: "DPS",
+  damage: "DPS",
+  support: "SUP",
+  flex: "FLEX",
+};
+
+const ROLE_ICON: Record<string, string> = {
+  tank: "https://static.wikia.nocookie.net/overwatch_gamepedia/images/c/c8/Role_Tank_Circle.svg/revision/latest/scale-to-width-down/120?cb=20250727105320",
+  dps: "https://static.wikia.nocookie.net/overwatch_gamepedia/images/8/80/Role_Damage_Circle.svg/revision/latest/scale-to-width-down/120?cb=20250727105011",
+  damage: "https://static.wikia.nocookie.net/overwatch_gamepedia/images/8/80/Role_Damage_Circle.svg/revision/latest/scale-to-width-down/120?cb=20250727105011",
+  support: "https://static.wikia.nocookie.net/overwatch_gamepedia/images/9/93/Role_Support_Circle.svg/revision/latest/scale-to-width-down/120?cb=20250727105200",
+};
+
+const LABEL_HORARIO: Record<string, string> = { manha: "Manhã", tarde: "Tarde", noite: "Noite" };
+const LABEL_DIA: Record<string, string> = {
+  segunda: "Seg", terca: "Ter", quarta: "Qua", quinta: "Qui",
+  sexta: "Sex", sabado: "Sáb", domingo: "Dom",
+};
+
+function iniciais(nome: string) {
+  return nome
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("") || "OS";
+}
+
+function Brasao({ nome, size = 48 }: { nome: string; size?: number }) {
+  return (
+    <div
+      className="rounded-xl flex items-center justify-center font-bold text-display text-background shrink-0"
+      style={{
+        width: size,
+        height: size,
+        background: "var(--grad-orange)",
+        boxShadow: "0 6px 20px -8px rgba(249,158,26,0.5)",
+        fontSize: size * 0.42,
+      }}
+    >
+      {iniciais(nome)}
+    </div>
+  );
+}
 
 export default function PublicoPage() {
   const [aba, setAba] = useState<Aba>("equipes");
@@ -68,188 +117,310 @@ export default function PublicoPage() {
     });
   }, []);
 
+  const haoVivo = useMemo(() => partidas.some((p) => p.status === "em_andamento"), [partidas]);
+
+  const abas: { id: Aba; label: string }[] = [
+    { id: "equipes", label: "Equipes" },
+    { id: "partidas", label: "Partidas" },
+    { id: "grupos", label: "Classificação" },
+  ];
+
   return (
-    <main className="min-h-screen bg-neutral-900 text-white">
-      {/* Header */}
-      <header className="bg-neutral-800 border-b border-neutral-700 px-8 py-6">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Overwatch Stadium</h1>
-            <p className="text-neutral-400 text-sm">Temporada 1 — Acompanhamento ao vivo</p>
+    <main className="min-h-screen text-fg">
+      {/* Hero / Header */}
+      <header className="relative overflow-hidden border-b border-line">
+        <div className="absolute inset-0 hero-grad pointer-events-none" />
+        <div className="relative max-w-6xl mx-auto px-6 md:px-8 py-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <Brasao nome="Overwatch Stadium" size={64} />
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] text-ow-orange/90 font-semibold">
+                Temporada 1 · Ao vivo
+              </p>
+              <h1 className="text-display text-4xl md:text-5xl font-bold uppercase leading-none mt-1">
+                Overwatch <span className="text-ow-orange">Stadium</span>
+              </h1>
+              <p className="text-fg-muted text-sm mt-2">
+                Acompanhamento oficial de equipes, partidas e classificação.
+              </p>
+            </div>
           </div>
-          <a
-            href="/"
-            className="text-sm text-orange-400 hover:text-orange-300 transition-colors"
-          >
-            Área restrita →
-          </a>
+
+          <div className="flex items-center gap-3">
+            {haoVivo && (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-danger/15 border border-danger/30 text-danger text-xs font-bold uppercase tracking-wider">
+                <span className="w-2 h-2 rounded-full bg-danger live-dot" />
+                Partida ao vivo
+              </span>
+            )}
+            <a
+              href="/"
+              className="text-sm font-semibold text-ow-blue hover:text-ow-blue-glow transition-colors border border-ow-blue/30 hover:border-ow-blue-glow/60 px-4 py-2 rounded-lg"
+            >
+              Área restrita →
+            </a>
+          </div>
         </div>
       </header>
 
       {/* Abas */}
-      <div className="bg-neutral-800 border-b border-neutral-700">
-        <div className="max-w-6xl mx-auto flex">
-          {(["equipes", "partidas", "grupos"] as Aba[]).map((a) => (
-            <button
-              key={a}
-              onClick={() => setAba(a)}
-              className={`px-6 py-4 text-sm font-semibold capitalize transition-colors border-b-2 ${
-                aba === a
-                  ? "border-orange-500 text-orange-400"
-                  : "border-transparent text-neutral-400 hover:text-white"
-              }`}
-            >
-              {a === "equipes" ? "🛡️ Equipes" : a === "partidas" ? "⚔️ Partidas" : "📊 Grupos"}
-            </button>
-          ))}
+      <nav className="border-b border-line bg-surface/40 backdrop-blur sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-6 md:px-8 flex gap-1">
+          {abas.map((a) => {
+            const ativo = aba === a.id;
+            return (
+              <button
+                key={a.id}
+                onClick={() => setAba(a.id)}
+                className={`relative px-5 py-4 text-sm font-semibold uppercase tracking-wider transition-colors ${
+                  ativo ? "text-fg" : "text-fg-muted hover:text-fg"
+                }`}
+              >
+                {a.label}
+                <span
+                  className={`absolute left-3 right-3 -bottom-px h-[3px] rounded-t-full transition-all ${
+                    ativo ? "bg-ow-orange shadow-[0_0_12px_var(--ow-orange-glow)]" : "bg-transparent"
+                  }`}
+                />
+              </button>
+            );
+          })}
         </div>
-      </div>
+      </nav>
 
-      <div className="max-w-6xl mx-auto p-8">
+      <div className="max-w-6xl mx-auto p-6 md:p-8">
         {carregando ? (
-          <p className="text-neutral-400">Carregando...</p>
+          <div className="grid gap-4">
+            <div className="skeleton h-28" />
+            <div className="skeleton h-28" />
+            <div className="skeleton h-28" />
+          </div>
         ) : (
           <>
-            {/* ABA EQUIPES */}
+            {/* EQUIPES */}
             {aba === "equipes" && (
-              <div className="flex flex-col gap-4">
+              <div className="grid gap-4">
                 {equipes.length === 0 ? (
-                  <p className="text-neutral-400">Nenhuma equipe inscrita ainda.</p>
+                  <p className="text-fg-muted">Nenhuma equipe inscrita ainda.</p>
                 ) : (
                   equipes.map((equipe) => (
-                    <div
+                    <article
                       key={equipe.id}
-                      className={`bg-neutral-800 rounded-xl border p-6 ${
-                        equipe.tem_jogador_desclassificado
-                          ? "border-red-500 bg-red-950/20"
-                          : "border-neutral-700"
+                      className={`surface-card p-5 md:p-6 relative overflow-hidden ${
+                        equipe.tem_jogador_desclassificado ? "ring-1 ring-danger/40" : ""
                       }`}
                     >
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h2 className="text-lg font-bold text-white">{equipe.nome}</h2>
-                            {equipe.tem_jogador_desclassificado && (
-                              <span className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-                                ⚠️ DESCLASSIFICADO
-                              </span>
-                            )}
-                            {equipe.grupo && (
-                              <span className="bg-purple-900 text-purple-300 text-xs font-bold px-2 py-1 rounded">
-                                Grupo {equipe.grupo}
-                              </span>
-                            )}
+                      {/* Faixa lateral */}
+                      <span
+                        className="absolute left-0 top-0 bottom-0 w-1"
+                        style={{
+                          background: equipe.tem_jogador_desclassificado
+                            ? "var(--danger)"
+                            : equipe.grupo
+                            ? "var(--grad-blue)"
+                            : "var(--grad-orange)",
+                        }}
+                      />
+
+                      <div className="flex flex-wrap justify-between items-start gap-4 mb-5 pl-2">
+                        <div className="flex items-center gap-4">
+                          <Brasao nome={equipe.nome} />
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h2 className="text-display text-xl font-bold uppercase">{equipe.nome}</h2>
+                              {equipe.grupo && (
+                                <span className="bg-ow-blue/15 text-ow-blue border border-ow-blue/30 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                                  Grupo {equipe.grupo}
+                                </span>
+                              )}
+                              {equipe.tem_jogador_desclassificado && (
+                                <span className="bg-danger/15 text-danger border border-danger/30 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                                  ⚠ Desclassificado
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-fg-muted text-sm mt-0.5">
+                              Capitão · <span className="text-fg">{equipe.nome_capitao}</span>
+                            </p>
                           </div>
-                          <p className="text-neutral-400 text-sm mt-1">
-                            Capitão: {equipe.nome_capitao}
-                          </p>
                         </div>
+
                         <div className="text-right">
-                          <p className="text-orange-400 font-bold text-xl">{equipe.pontuacao_rank} pts</p>
-                          <p className="text-neutral-400 text-sm">{equipe.vitorias}V / {equipe.derrotas}D</p>
+                          <p className="text-display text-3xl font-bold text-ow-orange leading-none">
+                            {equipe.pontuacao_rank}
+                          </p>
+                          <p className="text-fg-dim text-[10px] uppercase tracking-widest mt-1">pontos</p>
+                          <p className="text-xs mt-2">
+                            <span className="text-success font-semibold">{equipe.vitorias}V</span>
+                            <span className="text-fg-dim"> · </span>
+                            <span className="text-danger font-semibold">{equipe.derrotas}D</span>
+                          </p>
                         </div>
                       </div>
 
                       {/* Jogadores */}
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
-                        {equipe.jogadores.map((j, i) => (
-                          <div key={i} className="bg-neutral-900 rounded-lg p-2 text-center">
-                            <p className="text-lg">{ROLE_ICON[j.role] ?? "?"}</p>
-                            <p className="text-xs text-white font-semibold truncate">{j.battletag}</p>
-                            <p className="text-xs text-neutral-400">{j.rank}</p>
-                          </div>
-                        ))}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-4">
+                        {equipe.jogadores.map((j, i) => {
+                          const role = j.role?.toLowerCase() ?? "flex";
+                          return (
+                            <div
+                              key={i}
+                              className="bg-surface-2 border border-line rounded-lg p-3 flex flex-col items-center text-center"
+                            >
+                              <span
+                                className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider mb-2 ${
+                                  ROLE_COLOR[role] ?? ROLE_COLOR.flex
+                                }`}
+                              >
+                                {ROLE_ICON[role] && (
+                                  <img 
+                                    src={ROLE_ICON[role]} 
+                                    alt={role} 
+                                    className="w-5 h-5 object-contain" 
+                                  />
+                                )}
+                                {ROLE_LABEL[role] ?? role.toUpperCase()}
+                              </span>
+                              <p className="text-xs font-semibold truncate w-full font-mono">{j.battletag}</p>
+                              <p className="text-[11px] text-fg-dim mt-0.5">{j.rank}</p>
+                            </div>
+                          );
+                        })}
                       </div>
 
-                      {/* Horários */}
                       {(equipe.horarios?.length > 0 || equipe.dias?.length > 0) && (
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex gap-1.5 flex-wrap pt-3 border-t border-line">
                           {equipe.horarios?.map((h) => (
-                            <span key={h} className="bg-neutral-700 text-neutral-300 text-xs px-2 py-1 rounded">
-                              {h}
+                            <span
+                              key={h}
+                              className="bg-ow-orange/10 text-ow-orange border border-ow-orange/20 text-[10px] px-2 py-0.5 rounded uppercase tracking-wider font-semibold"
+                            >
+                              {LABEL_HORARIO[h] ?? h}
                             </span>
                           ))}
                           {equipe.dias?.map((d) => (
-                            <span key={d} className="bg-neutral-700 text-neutral-300 text-xs px-2 py-1 rounded">
-                              {d}
+                            <span
+                              key={d}
+                              className="bg-surface-2 text-fg-muted border border-line text-[10px] px-2 py-0.5 rounded uppercase tracking-wider font-semibold"
+                            >
+                              {LABEL_DIA[d] ?? d}
                             </span>
                           ))}
                         </div>
                       )}
-                    </div>
+                    </article>
                   ))
                 )}
               </div>
             )}
 
-            {/* ABA PARTIDAS */}
+            {/* PARTIDAS */}
             {aba === "partidas" && (
-              <div className="flex flex-col gap-3">
+              <div className="grid gap-3">
                 {partidas.length === 0 ? (
-                  <p className="text-neutral-400">Nenhuma partida registrada ainda.</p>
+                  <p className="text-fg-muted">Nenhuma partida registrada ainda.</p>
                 ) : (
-                  partidas.map((p) => (
-                    <div key={p.id} className="bg-neutral-800 border border-neutral-700 rounded-xl p-5">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-4">
-                          <span className="text-xs text-neutral-500 uppercase">{p.fase}{p.grupo ? ` · Grupo ${p.grupo}` : ""}</span>
+                  partidas.map((p) => {
+                    const ao_vivo = p.status === "em_andamento";
+                    const concluida = p.status === "concluida";
+                    return (
+                      <article key={p.id} className="surface-card p-5">
+                        <div className="flex justify-between items-center mb-4">
+                          <span className="text-[10px] uppercase tracking-[0.2em] text-fg-dim font-semibold">
+                            {p.fase}{p.grupo ? ` · Grupo ${p.grupo}` : ""}
+                          </span>
+                          <span
+                            className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border ${
+                              concluida
+                                ? "bg-success/15 text-success border-success/30"
+                                : ao_vivo
+                                ? "bg-danger/15 text-danger border-danger/30"
+                                : "bg-surface-2 text-fg-muted border-line"
+                            }`}
+                          >
+                            {ao_vivo && <span className="w-1.5 h-1.5 rounded-full bg-danger live-dot" />}
+                            {p.status.replace(/_/g, " ")}
+                          </span>
                         </div>
-                        <span className={`text-xs font-bold px-2 py-1 rounded ${
-                          p.status === "concluida" ? "bg-green-900 text-green-300" :
-                          p.status === "em_andamento" ? "bg-yellow-900 text-yellow-300 animate-pulse" :
-                          "bg-neutral-700 text-neutral-400"
-                        }`}>
-                          {p.status.replace(/_/g, " ").toUpperCase()}
-                        </span>
-                      </div>
 
-                      <div className="flex items-center justify-center gap-6 mt-4">
-                        <p className={`text-lg font-bold ${p.vencedor === p.time_a ? "text-green-400" : "text-white"}`}>
-                          {p.time_a}
-                        </p>
-                        <p className="text-2xl font-bold text-orange-400">
-                          {p.score_a ?? "—"} x {p.score_b ?? "—"}
-                        </p>
-                        <p className={`text-lg font-bold ${p.vencedor === p.time_b ? "text-green-400" : "text-white"}`}>
-                          {p.time_b}
-                        </p>
-                      </div>
-                    </div>
-                  ))
+                        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+                          <p
+                            className={`text-display text-lg md:text-xl font-bold uppercase text-right truncate ${
+                              p.vencedor === p.time_a ? "text-success" : "text-fg"
+                            }`}
+                          >
+                            {p.time_a}
+                          </p>
+                          <div className="text-display text-3xl md:text-4xl font-bold tabular-nums flex items-center gap-3">
+                            <span className={p.vencedor === p.time_a ? "text-ow-orange" : "text-fg"}>
+                              {p.score_a ?? "—"}
+                            </span>
+                            <span className="text-fg-dim text-xl">×</span>
+                            <span className={p.vencedor === p.time_b ? "text-ow-orange" : "text-fg"}>
+                              {p.score_b ?? "—"}
+                            </span>
+                          </div>
+                          <p
+                            className={`text-display text-lg md:text-xl font-bold uppercase truncate ${
+                              p.vencedor === p.time_b ? "text-success" : "text-fg"
+                            }`}
+                          >
+                            {p.time_b}
+                          </p>
+                        </div>
+                      </article>
+                    );
+                  })
                 )}
               </div>
             )}
 
-            {/* ABA GRUPOS */}
+            {/* GRUPOS */}
             {aba === "grupos" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {Object.keys(grupos).length === 0 ? (
-                  <p className="text-neutral-400">Fase de grupos ainda não iniciada.</p>
+                  <p className="text-fg-muted">Fase de grupos ainda não iniciada.</p>
                 ) : (
                   Object.entries(grupos).map(([grupo, equipes]) => (
-                    <div key={grupo} className="bg-neutral-800 border border-neutral-700 rounded-xl p-5">
-                      <h2 className="text-lg font-bold text-white mb-4">Grupo {grupo}</h2>
+                    <article key={grupo} className="surface-card p-5">
+                      <header className="flex items-center justify-between mb-4">
+                        <h2 className="text-display text-lg font-bold uppercase tracking-wider">
+                          Grupo <span className="text-ow-orange">{grupo}</span>
+                        </h2>
+                        <span className="text-[10px] uppercase tracking-widest text-fg-dim">
+                          {equipes.length} equipes
+                        </span>
+                      </header>
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="text-neutral-400 border-b border-neutral-700">
-                            <th className="text-left py-2">Equipe</th>
-                            <th className="text-center py-2">V</th>
-                            <th className="text-center py-2">D</th>
-                            <th className="text-center py-2">Saldo</th>
+                          <tr className="text-fg-dim text-[10px] uppercase tracking-widest border-b border-line">
+                            <th className="text-left py-2 font-semibold">#</th>
+                            <th className="text-left py-2 font-semibold">Equipe</th>
+                            <th className="text-center py-2 font-semibold">V</th>
+                            <th className="text-center py-2 font-semibold">D</th>
+                            <th className="text-center py-2 font-semibold">Saldo</th>
                           </tr>
                         </thead>
                         <tbody>
                           {equipes.map((e, i) => (
-                            <tr key={i} className="border-b border-neutral-700/50">
-                              <td className="py-2 font-semibold text-white">{e.nome}</td>
-                              <td className="py-2 text-center text-green-400">{e.vitorias}</td>
-                              <td className="py-2 text-center text-red-400">{e.derrotas}</td>
-                              <td className="py-2 text-center text-neutral-300">{e.saldo_mapas}</td>
+                            <tr
+                              key={i}
+                              className={`border-b border-line/60 last:border-0 ${
+                                i === 0 ? "bg-ow-orange/5" : ""
+                              }`}
+                            >
+                              <td className={`py-2.5 font-display font-bold ${i === 0 ? "text-ow-orange" : "text-fg-dim"}`}>
+                                {i + 1}
+                              </td>
+                              <td className="py-2.5 font-semibold text-fg">{e.nome}</td>
+                              <td className="py-2.5 text-center text-success font-semibold tabular-nums">{e.vitorias}</td>
+                              <td className="py-2.5 text-center text-danger font-semibold tabular-nums">{e.derrotas}</td>
+                              <td className="py-2.5 text-center text-fg-muted tabular-nums">{e.saldo_mapas}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
-                    </div>
+                    </article>
                   ))
                 )}
               </div>

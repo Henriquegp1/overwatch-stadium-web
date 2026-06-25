@@ -129,12 +129,25 @@ export default function AdminChaveamentoPage() {
           <div className="absolute inset-0 hero-grad" />
           <div className="relative p-6 md:p-8 flex flex-wrap justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center text-display text-2xl font-bold text-background"
-                style={{ background: "var(--grad-orange)" }}
+              {/* Ícone de Chaveamento (Bracket e Troféu) */}
+              <svg 
+                viewBox="0 0 48 48" 
+                fill="none" 
+                className="w-14 h-14 shrink-0 drop-shadow-[0_0_15px_rgba(249,158,26,0.4)]"
               >
-                OS
-              </div>
+                {/* Linhas conectando os times */}
+                <path d="M14 14H22V34H14" stroke="#E6EDF7" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M22 24H30" stroke="#F99E1A" strokeWidth="4" strokeLinecap="round"/>
+                
+                {/* Caixas representando as equipes se enfrentando */}
+                <rect x="6" y="10" width="8" height="8" rx="2" fill="#E6EDF7"/>
+                <rect x="6" y="30" width="8" height="8" rx="2" fill="#E6EDF7"/>
+                
+                {/* Troféu do Vencedor */}
+                <path d="M34 16H42C43.1046 16 44 16.8954 44 18V21C44 23.7614 41.7614 26 39 26H37C34.2386 26 32 23.7614 32 21V18C32 16.8954 32.8954 16 34 16Z" fill="#F99E1A"/>
+                <rect x="36" y="26" width="4" height="6" fill="#F99E1A"/>
+                <rect x="33" y="32" width="10" height="2" rx="1" fill="#F99E1A"/>
+              </svg>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-ow-orange font-semibold">
                   Painel do Organizador

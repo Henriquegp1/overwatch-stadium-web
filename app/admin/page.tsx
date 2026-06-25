@@ -101,12 +101,15 @@ export default function AdminMenuPage() {
           <div className="absolute inset-0 hero-grad" />
           <div className="relative p-6 md:p-8 flex flex-wrap justify-between items-center gap-4">
             <div className="flex items-center gap-4">
-              <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center text-display text-2xl font-bold text-background"
-                style={{ background: "var(--grad-orange)" }}
+              {/* Logo Oficial Overwatch */}
+              <svg 
+                viewBox="0 0 48 48" 
+                fill="none" 
+                className="w-14 h-14 shrink-0 drop-shadow-[0_0_15px_rgba(249,158,26,0.4)]"
               >
-                OS
-              </div>
+                <path fill="#F99E1A" d="M13.9 13.901a14.284 14.284 0 0 1 20.2 0l4.043-4.042a20 20 0 0 0-28.286 0z"></path>
+                <path fill="#E6EDF7" d="m39.312 11.135-4.063 4.062a14.29 14.29 0 0 1 .995 16.159L28.891 24l-4.006-9.413h-.02V27.31l7.938 7.938a14.29 14.29 0 0 1-17.606 0l7.939-7.938V14.636l-4.027 9.365-7.355 7.355a14.29 14.29 0 0 1 .997-16.159l-4.063-4.062a20.001 20.001 0 1 0 30.624 0"></path>
+              </svg>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-ow-orange font-semibold">
                   Painel do Organizador

@@ -40,7 +40,7 @@ interface Partida {
 
 type Grupos = Record<string, { nome: string; vitorias: number; derrotas: number; saldo_mapas: number; mapas_pro: number }[]>;
 
-type Aba = "equipes" | "partidas" | "grupos";
+type Aba = "inicio" | "equipes" | "partidas" | "grupos";
 
 const ROLE_COLOR: Record<string, string> = {
   tank: "bg-role-tank/15 text-role-tank border-role-tank/30",
@@ -98,11 +98,12 @@ function Brasao({ nome, size = 48 }: { nome: string; size?: number }) {
 }
 
 export default function PublicoPage() {
-  const [aba, setAba] = useState<Aba>("equipes");
+  const [aba, setAba] = useState<Aba>("inicio");
   const [equipes, setEquipes] = useState<Equipe[]>([]);
   const [partidas, setPartidas] = useState<Partida[]>([]);
   const [grupos, setGrupos] = useState<Grupos>({});
   const [carregando, setCarregando] = useState(true);
+  const [streamAtivo, setStreamAtivo] = useState("akiralegacy");
 
   useEffect(() => {
     Promise.all([
@@ -120,6 +121,7 @@ export default function PublicoPage() {
   const haoVivo = useMemo(() => partidas.some((p) => p.status === "em_andamento"), [partidas]);
 
   const abas: { id: Aba; label: string }[] = [
+    { id: "inicio", label: "Início" },
     { id: "equipes", label: "Equipes" },
     { id: "partidas", label: "Partidas" },
     { id: "grupos", label: "Classificação" },
@@ -132,7 +134,18 @@ export default function PublicoPage() {
         <div className="absolute inset-0 hero-grad pointer-events-none" />
         <div className="relative max-w-6xl mx-auto px-6 md:px-8 py-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="flex items-center gap-4">
-            <Brasao nome="Overwatch Stadium" size={64} />
+            <div className="flex items-center gap-4">
+            
+            {/* Logo Oficial Overwatch (Substituindo o Brasao antigo) */}
+            <svg 
+              viewBox="0 0 48 48" 
+              fill="none" 
+              className="w-16 h-16 shrink-0 drop-shadow-[0_0_15px_rgba(249,158,26,0.4)]"
+            >
+              <path fill="#F99E1A" d="M13.9 13.901a14.284 14.284 0 0 1 20.2 0l4.043-4.042a20 20 0 0 0-28.286 0z"></path>
+              <path fill="#E6EDF7" d="m39.312 11.135-4.063 4.062a14.29 14.29 0 0 1 .995 16.159L28.891 24l-4.006-9.413h-.02V27.31l7.938 7.938a14.29 14.29 0 0 1-17.606 0l7.939-7.938V14.636l-4.027 9.365-7.355 7.355a14.29 14.29 0 0 1 .997-16.159l-4.063-4.062a20.001 20.001 0 1 0 30.624 0"></path>
+            </svg>
+
             <div>
               <p className="text-xs uppercase tracking-[0.25em] text-ow-orange/90 font-semibold">
                 Temporada 1 · Ao vivo
@@ -145,6 +158,7 @@ export default function PublicoPage() {
               </p>
             </div>
           </div>
+          </div>
 
           <div className="flex items-center gap-3">
             {haoVivo && (
@@ -154,7 +168,7 @@ export default function PublicoPage() {
               </span>
             )}
             <a
-              href="/"
+              href="/?login=true"
               className="text-sm font-semibold text-ow-blue hover:text-ow-blue-glow transition-colors border border-ow-blue/30 hover:border-ow-blue-glow/60 px-4 py-2 rounded-lg"
             >
               Área restrita →
@@ -197,6 +211,86 @@ export default function PublicoPage() {
           </div>
         ) : (
           <>
+            {/* INÍCIO */}
+            {aba === "inicio" && (
+              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                
+                {/* Seção Sobre o Torneio & Inscrição (AGORA NO TOPO) */}
+                <section className="surface-card rounded-2xl p-8 md:p-12 text-center relative overflow-hidden border border-line-strong">
+                  <div className="absolute inset-0 hero-grad opacity-30 pointer-events-none" />
+                  
+                  <div className="relative z-10 max-w-3xl mx-auto space-y-6">
+                    <div className="w-16 h-16 mx-auto bg-ow-orange/10 rounded-full flex items-center justify-center mb-2">
+                      <svg viewBox="0 0 48 48" fill="none" className="w-10 h-10">
+                        <path fill="#F99E1A" d="M13.9 13.901a14.284 14.284 0 0 1 20.2 0l4.043-4.042a20 20 0 0 0-28.286 0z"></path>
+                        <path fill="#E6EDF7" d="m39.312 11.135-4.063 4.062a14.29 14.29 0 0 1 .995 16.159L28.891 24l-4.006-9.413h-.02V27.31l7.938 7.938a14.29 14.29 0 0 1-17.606 0l7.939-7.938V14.636l-4.027 9.365-7.355 7.355a14.29 14.29 0 0 1 .997-16.159l-4.063-4.062a20.001 20.001 0 1 0 30.624 0"></path>
+                      </svg>
+                    </div>
+
+                    <h2 className="text-display text-3xl md:text-4xl font-bold uppercase">
+                      Bem-vindo ao Overwatch <span className="text-ow-orange">Stadium</span>
+                    </h2>
+                    
+                    <p className="text-fg-muted md:text-lg leading-relaxed">
+                      O Overwatch Stadium é o campeonato perfeito para você testar suas habilidades e subir de nível no cenário competitivo. Focado em promover o equilíbrio e a diversão, o torneio tem um limite máximo de rank estabelecido em <strong className="text-ow-orange font-bold px-1">Mestre 1</strong>.
+                    </p>
+                    
+                    <p className="text-fg md:text-xl font-display font-semibold uppercase tracking-wider pt-2">
+                      Reúna seus amigos, treine suas composições e venha disputar a glória!
+                    </p>
+
+                    <div className="pt-6">
+                      <a
+                        href="https://docs.google.com/forms/d/e/1FAIpQLSfWb3zc0hUqFKfRqheGgRT1waY3QP1aako2LHAQcrlbUTNTVg/viewform?usp=header"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block bg-ow-orange text-background font-bold uppercase tracking-wider py-4 px-8 rounded-xl hover:bg-ow-orange-glow hover:-translate-y-1 hover:shadow-[0_15px_40px_-15px_rgba(249,158,26,0.6)] transition-all duration-300"
+                      >
+                        Inscrever Minha Equipe →
+                      </a>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Seção de Streamers (AGORA EMBAIXO) */}
+                <section>
+                  <h2 className="text-display text-2xl font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
+                    <span className="text-ow-orange">✦</span> Transmissões Oficiais
+                  </h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-5">
+                    {[
+                      { canal: "akiralegacy", nome: "AkiraLegacy" },
+                      { canal: "foythtv", nome: "FoythTV" },
+                      { canal: "violetkill", nome: "VioletKill" }
+                    ].map((streamer) => (
+                      <div key={streamer.canal} className="flex flex-col gap-3">
+                        {/* Nome do Streamer e Indicador de Live */}
+                        <div className="flex items-center gap-2 px-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-danger live-dot" />
+                          <h3 className="text-display text-lg font-bold uppercase tracking-wider text-fg">
+                            {streamer.nome}
+                          </h3>
+                        </div>
+
+                        {/* Player de Vídeo */}
+                        <div className="aspect-video bg-surface-2 rounded-xl overflow-hidden border border-line-strong shadow-lg hover:border-ow-orange/50 transition-colors">
+                          <iframe
+                            src={`https://player.twitch.tv/?channel=${streamer.canal}&parent=localhost&parent=web-production-aeb1b.up.railway.app`}
+                            height="100%"
+                            width="100%"
+                            allowFullScreen
+                            className="border-none"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+              </div>
+            )}
+            
             {/* EQUIPES */}
             {aba === "equipes" && (
               <div className="grid gap-4">

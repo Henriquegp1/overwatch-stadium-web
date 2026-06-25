@@ -211,16 +211,45 @@ export default function AdminInscricoesPage() {
     <main className="min-h-screen p-6 md:p-10 text-fg">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
+        {/* Header */}
         <header className="relative overflow-hidden rounded-2xl border border-line-strong mb-8">
           <div className="absolute inset-0 hero-grad" />
           <div className="relative p-6 md:p-8 flex flex-wrap justify-between items-center gap-4">
+            
             <div className="flex items-center gap-4">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-display text-xl font-bold text-background"
-                style={{ background: "var(--grad-orange)" }}
+              {/* Ícone de Inscrições (Card de Perfil Moderno) */}
+              <svg 
+                viewBox="0 0 48 48" 
+                fill="none" 
+                className="w-14 h-14 shrink-0 drop-shadow-[0_0_15px_rgba(249,158,26,0.4)]"
               >
-                IN
-              </div>
+                {/* Borda do Documento com dobra sci-fi */}
+                <path 
+                  d="M14 12C14 10.8954 14.8954 10 16 10H28L36 18V36C36 37.1046 35.1046 38 34 38H16C14.8954 38 14 37.1046 14 36V12Z" 
+                  stroke="#E6EDF7" 
+                  strokeWidth="3" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+                {/* Detalhe da dobra superior direita */}
+                <path 
+                  d="M28 10V18H36" 
+                  stroke="#E6EDF7" 
+                  strokeWidth="3" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+                
+                {/* Ícone de Usuário / Avatar em Laranja (Overwatch) */}
+                <circle cx="25" cy="22" r="4" stroke="#F99E1A" strokeWidth="3"/>
+                <path 
+                  d="M19 32C19 29.5 22 28 25 28C28 28 31 29.5 31 32" 
+                  stroke="#F99E1A" 
+                  strokeWidth="3" 
+                  strokeLinecap="round"
+                />
+              </svg>
+              
               <div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-ow-orange font-semibold">
                   Painel admin
@@ -228,6 +257,7 @@ export default function AdminInscricoesPage() {
                 <h1 className="text-display text-3xl font-bold uppercase">Inscrições</h1>
               </div>
             </div>
+
             <button
               onClick={() => router.push("/admin")}
               className="text-sm font-semibold border border-line-strong hover:border-ow-orange/60 hover:text-ow-orange text-fg-muted px-4 py-2 rounded-lg transition-colors"

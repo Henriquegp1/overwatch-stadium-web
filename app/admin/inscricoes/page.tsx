@@ -380,6 +380,27 @@ export default function AdminInscricoesPage() {
                       >
                         {insc.verificado ? "Verificado" : "Verificar"}
                       </button>
+                      {insc.fase_atual === "eliminado" && (
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Reativar a equipe "${insc.nome}"?`)) return;
+                            try {
+                              const res = await fetch(`${API}/api/chaveamento/equipes/${insc.id}/reativar`, {
+                                method: "PATCH",
+                                headers: { Authorization: `Bearer ${getToken()}` },
+                              });
+                              if (!res.ok) throw new Error();
+                              setSucesso(`Equipe "${insc.nome}" reativada.`);
+                              buscar();
+                            } catch {
+                              setErro("Erro ao reativar equipe.");
+                            }
+                          }}
+                          className="px-4 py-2 rounded-lg bg-success/10 hover:bg-success/20 border border-success/30 text-success text-sm font-semibold transition-colors"
+                        >
+                          Reativar
+                        </button>
+                      )}
                       <button
                         onClick={() => setExpandido(aberto ? null : insc.id)}
                         className="bg-surface-2 hover:bg-surface-2/70 text-fg px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors border border-line"

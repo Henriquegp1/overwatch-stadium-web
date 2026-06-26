@@ -383,22 +383,30 @@ export default function AdminInscricoesPage() {
                       {insc.fase_atual === "eliminado" && (
                         <button
                           onClick={async () => {
-                            if (!confirm(`Reativar a equipe "${insc.nome}"?`)) return;
+                            const acao = insc.fase_atual === "eliminado" ? "reativar" : "eliminar";
+                            const msg = acao === "eliminar"
+                              ? `Eliminar a equipe "${insc.nome}"?`
+                              : `Reativar a equipe "${insc.nome}"?`;
+                            if (!confirm(msg)) return;
                             try {
-                              const res = await fetch(`${API}/api/chaveamento/equipes/${insc.id}/reativar`, {
+                              const res = await fetch(`${API}/api/chaveamento/equipes/${insc.id}/${acao}`, {
                                 method: "PATCH",
                                 headers: { Authorization: `Bearer ${getToken()}` },
                               });
                               if (!res.ok) throw new Error();
-                              setSucesso(`Equipe "${insc.nome}" reativada.`);
+                              setSucesso(`Equipe "${insc.nome}" ${acao === "eliminar" ? "eliminada" : "reativada"}.`);
                               buscar();
                             } catch {
-                              setErro("Erro ao reativar equipe.");
+                              setErro(`Erro ao ${acao} equipe.`);
                             }
                           }}
-                          className="px-4 py-2 rounded-lg bg-success/10 hover:bg-success/20 border border-success/30 text-success text-sm font-semibold transition-colors"
+                          className={`px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors border ${
+                            insc.fase_atual === "eliminado"
+                              ? "bg-success/10 hover:bg-success/20 text-success border-success/30"
+                              : "bg-danger/10 hover:bg-danger/20 text-danger border-danger/30"
+                          }`}
                         >
-                          Reativar
+                          {insc.fase_atual === "eliminado" ? "Reativar" : "Eliminar"}
                         </button>
                       )}
                       <button

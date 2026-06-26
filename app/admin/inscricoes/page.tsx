@@ -380,35 +380,33 @@ export default function AdminInscricoesPage() {
                       >
                         {insc.verificado ? "Verificado" : "Verificar"}
                       </button>
-                      {insc.fase_atual === "eliminado" && (
-                        <button
-                          onClick={async () => {
-                            const acao = insc.fase_atual === "eliminado" ? "reativar" : "eliminar";
-                            const msg = acao === "eliminar"
-                              ? `Eliminar a equipe "${insc.nome}"?`
-                              : `Reativar a equipe "${insc.nome}"?`;
-                            if (!confirm(msg)) return;
-                            try {
-                              const res = await fetch(`${API}/api/chaveamento/equipes/${insc.id}/${acao}`, {
-                                method: "PATCH",
-                                headers: { Authorization: `Bearer ${getToken()}` },
-                              });
-                              if (!res.ok) throw new Error();
-                              setSucesso(`Equipe "${insc.nome}" ${acao === "eliminar" ? "eliminada" : "reativada"}.`);
-                              buscar();
-                            } catch {
-                              setErro(`Erro ao ${acao} equipe.`);
-                            }
-                          }}
-                          className={`px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors border ${
-                            insc.fase_atual === "eliminado"
-                              ? "bg-success/10 hover:bg-success/20 text-success border-success/30"
-                              : "bg-danger/10 hover:bg-danger/20 text-danger border-danger/30"
-                          }`}
-                        >
-                          {insc.fase_atual === "eliminado" ? "Reativar" : "Eliminar"}
-                        </button>
-                      )}
+                      <button
+                        onClick={async () => {
+                          const acao = insc.fase_atual === "eliminado" ? "reativar" : "eliminar";
+                          const msg = acao === "eliminar"
+                            ? `Eliminar a equipe "${insc.nome}"?`
+                            : `Reativar a equipe "${insc.nome}"?`;
+                          if (!confirm(msg)) return;
+                          try {
+                            const res = await fetch(`${API}/api/chaveamento/equipes/${insc.id}/${acao}`, {
+                              method: "PATCH",
+                              headers: { Authorization: `Bearer ${getToken()}` },
+                            });
+                            if (!res.ok) throw new Error();
+                            setSucesso(`Equipe "${insc.nome}" ${acao === "eliminar" ? "eliminada" : "reativada"}.`);
+                            buscar();
+                          } catch {
+                            setErro(`Erro ao ${acao} equipe.`);
+                          }
+                        }}
+                        className={`px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors border ${
+                          insc.fase_atual === "eliminado"
+                            ? "bg-success/10 hover:bg-success/20 text-success border-success/30"
+                            : "bg-surface-2 hover:bg-danger/10 text-fg-muted hover:text-danger border-line hover:border-danger/30"
+                        }`}
+                      >
+                        {insc.fase_atual === "eliminado" ? "Reativar" : "Eliminar"}
+                      </button>
                       <button
                         onClick={() => setExpandido(aberto ? null : insc.id)}
                         className="bg-surface-2 hover:bg-surface-2/70 text-fg px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors border border-line"

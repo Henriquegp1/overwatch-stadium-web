@@ -36,11 +36,19 @@ interface Partida {
   time_a: string;
   time_b: string;
   vencedor: string | null;
+  streamer: string | null;
+  horario_agendado: string | null;
 }
 
 type Grupos = Record<string, { nome: string; vitorias: number; derrotas: number; saldo_mapas: number; mapas_pro: number }[]>;
 
 type Aba = "inicio" | "equipes" | "partidas" | "grupos";
+
+const STREAMERS = [
+  { value: "akiralegacy", label: "AkiraLegacy" },
+  { value: "foythtv", label: "FoythTV" },
+  { value: "violetkill", label: "VioletKill" },
+];
 
 const ROLE_COLOR: Record<string, string> = {
   tank: "bg-role-tank/15 text-role-tank border-role-tank/30",
@@ -462,6 +470,29 @@ export default function PublicoPage() {
                           <div className="flex justify-between text-[10px] text-fg-dim mt-2 px-1">
                             <span>saldo: {(p.score_a - p.score_b) >= 0 ? "+" : ""}{p.score_a - p.score_b}</span>
                             <span>saldo: {(p.score_b - p.score_a) >= 0 ? "+" : ""}{p.score_b - p.score_a}</span>
+                          </div>
+                        )}
+                        {(p.horario_agendado || p.streamer) && (
+                          <div className="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-line">
+                            {p.horario_agendado && (
+                              <span className="text-xs text-fg-muted">
+                                🕐 {new Date(p.horario_agendado).toLocaleString("pt-BR", {
+                                  day: "2-digit", month: "2-digit", year: "numeric",
+                                  hour: "2-digit", minute: "2-digit"
+                                })}
+                              </span>
+                            )}
+                            {p.streamer && (
+                              <a
+                                href={`https://twitch.tv/${p.streamer}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-4 py-1.5 bg-danger/15 hover:bg-danger/25 border border-danger/30 text-danger text-xs font-bold rounded-lg transition-colors uppercase tracking-wider"
+                              >
+                                <span className="w-2 h-2 rounded-full bg-danger live-dot" />
+                                Assistir — {STREAMERS.find(s => s.value === p.streamer)?.label ?? p.streamer}
+                              </a>
+                            )}
                           </div>
                         )}
                       </article>

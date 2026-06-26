@@ -18,7 +18,9 @@ interface Partida {
   status: string;
   rodada: number;
   score_a: number | null;  
-  score_b: number | null;  
+  score_b: number | null;
+  streamer: string | null;          
+  horario_agendado: string | null;   
 }
 
 interface Rodadas {
@@ -84,6 +86,75 @@ function PlacarForm({
         className="w-full py-1.5 px-3 rounded-lg bg-surface-2 hover:bg-ow-blue/20 hover:border-ow-blue border border-line text-fg text-xs font-semibold transition-colors disabled:opacity-40 truncate"
       >
         ✓ {partida.time_b.nome}
+      </button>
+    </div>
+  );
+}
+
+const STREAMERS = [
+  { value: "", label: "Nenhum" },
+  { value: "akiralegacy", label: "AkiraLegacy" },
+  { value: "foythtv", label: "FoythTV" },
+  { value: "violetkill", label: "VioletKill" },
+];
+
+function InfoForm({ partida, token }: { partida: Partida; token: string }) {
+  const [streamer, setStreamer] = useState(partida.streamer ?? "");
+  const [horario, setHorario] = useState(
+    partida.horario_agendado
+      ? new Date(partida.horario_agendado).toISOString().slice(0, 16)
+      : ""
+  );
+  const [salvando, setSalvando] = useState(false);
+  const [ok, setOk] = useState(false);
+
+  const salvar = async () => {
+    setSalvando(true);
+    setOk(false);
+    await fetch(`${API}/api/chaveamento/partidas/${partida.id}/info`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        streamer: streamer || "",
+        horario_agendado: horario || "",
+      }),
+    });
+    setSalvando(false);
+    setOk(true);
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-line items-end">
+      <div>
+        <p className="text-[10px] text-fg-dim mb-1 uppercase tracking-wider">Streamer</p>
+        <select
+          value={streamer}
+          onChange={e => setStreamer(e.target.value)}
+          className="px-2 py-1.5 bg-surface-2 border border-line rounded-lg text-fg text-xs focus:outline-none focus:border-ow-orange"
+        >
+          {STREAMERS.map(s => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <p className="text-[10px] text-fg-dim mb-1 uppercase tracking-wider">Data e hora</p>
+        <input
+          type="datetime-local"
+          value={horario}
+          onChange={e => setHorario(e.target.value)}
+          className="px-2 py-1.5 bg-surface-2 border border-line rounded-lg text-fg text-xs focus:outline-none focus:border-ow-orange"
+        />
+      </div>
+      <button
+        onClick={salvar}
+        disabled={salvando}
+        className="px-4 py-1.5 bg-ow-orange/20 hover:bg-ow-orange/30 border border-ow-orange/40 text-ow-orange text-xs font-bold rounded-lg transition-colors disabled:opacity-40"
+      >
+        {salvando ? "..." : ok ? "✓ Salvo" : "Salvar"}
       </button>
     </div>
   );
@@ -418,7 +489,7 @@ export default function AdminChaveamentoPage() {
                             />
                           )}
                         </div>
-
+                        <InfoForm partida={partida} token={getToken()} />
                       </div>
                     </div>
                   ))}

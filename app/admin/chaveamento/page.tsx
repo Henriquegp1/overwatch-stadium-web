@@ -169,6 +169,7 @@ export default function AdminChaveamentoPage() {
   const [sucesso, setSucesso] = useState("");
   const [registrando, setRegistrando] = useState<number | null>(null);
   const [editandoPartida, setEditandoPartida] = useState<number | null>(null);
+  const [modo, setModo] = useState<"eliminatorio" | "grupos">("eliminatorio");
   
 
   const getToken = () => localStorage.getItem("stadium_token") ?? "";
@@ -204,9 +205,14 @@ export default function AdminChaveamentoPage() {
     setErro("");
     setSucesso("");
     try {
-      const res = await fetch(`${API}/api/chaveamento/gerar${forcar ? "?forcar=true" : ""}`, {
+      const url = `${API}/api/chaveamento/gerar${forcar ? "?forcar=true" : ""}`;
+      const res = await fetch(url, {
         method: "POST",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ modo }),
       });
 
       if (res.status === 409) {
@@ -219,7 +225,6 @@ export default function AdminChaveamentoPage() {
 
       const dados = await res.json();
       if (!res.ok) throw new Error(dados.detail || "Erro ao gerar chaveamento.");
-
       setSucesso(dados.mensagem);
       buscar();
     } catch (e: unknown) {
@@ -329,6 +334,28 @@ export default function AdminChaveamentoPage() {
                 ? `Rodada ${totalRodadas} concluída — pronto para gerar a próxima.`
                 : `Rodada ${totalRodadas} em andamento.`}
             </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setModo("eliminatorio")}
+              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
+                modo === "eliminatorio"
+                  ? "bg-danger/20 border border-danger/50 text-danger"
+                  : "bg-surface-2 border border-line text-fg-muted hover:border-danger/30"
+              }`}
+            >
+              Mata-mata
+            </button>
+            <button
+              onClick={() => setModo("grupos")}
+              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
+                modo === "grupos"
+                  ? "bg-ow-blue/20 border border-ow-blue/50 text-ow-blue"
+                  : "bg-surface-2 border border-line text-fg-muted hover:border-ow-blue/30"
+              }`}
+            >
+              Fase de Grupos
+            </button>
           </div>
           <button
             onClick={() => gerarChaveamento(false)}

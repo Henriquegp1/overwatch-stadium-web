@@ -438,11 +438,9 @@ export default function PublicoPage() {
                         </div>
 
                         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-                          <p
-                            className={`text-display text-lg md:text-xl font-bold uppercase text-right truncate ${
-                              p.vencedor === p.time_a ? "text-success" : "text-fg"
-                            }`}
-                          >
+                          <p className={`text-display text-lg md:text-xl font-bold uppercase text-right truncate ${
+                            p.vencedor === p.time_a ? "text-success" : "text-fg"
+                          }`}>
                             {p.time_a}
                           </p>
                           <div className="text-display text-3xl md:text-4xl font-bold tabular-nums flex items-center gap-3">
@@ -454,14 +452,18 @@ export default function PublicoPage() {
                               {p.score_b ?? "—"}
                             </span>
                           </div>
-                          <p
-                            className={`text-display text-lg md:text-xl font-bold uppercase truncate ${
-                              p.vencedor === p.time_b ? "text-success" : "text-fg"
-                            }`}
-                          >
+                          <p className={`text-display text-lg md:text-xl font-bold uppercase truncate ${
+                            p.vencedor === p.time_b ? "text-success" : "text-fg"
+                          }`}>
                             {p.time_b}
                           </p>
                         </div>
+                        {p.status === "concluida" && p.score_a !== null && p.score_b !== null && (
+                          <div className="flex justify-between text-[10px] text-fg-dim mt-2 px-1">
+                            <span>saldo: {(p.score_a - p.score_b) >= 0 ? "+" : ""}{p.score_a - p.score_b}</span>
+                            <span>saldo: {(p.score_b - p.score_a) >= 0 ? "+" : ""}{p.score_b - p.score_a}</span>
+                          </div>
+                        )}
                       </article>
                     );
                   })

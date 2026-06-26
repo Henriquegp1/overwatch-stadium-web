@@ -97,6 +97,8 @@ export default function AdminChaveamentoPage() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [registrando, setRegistrando] = useState<number | null>(null);
+  const [editandoPartida, setEditandoPartida] = useState<number | null>(null);
+  
 
   const getToken = () => localStorage.getItem("stadium_token") ?? "";
 
@@ -381,6 +383,28 @@ export default function AdminChaveamentoPage() {
                               <p className="text-xs text-success font-semibold mt-1 uppercase tracking-wider">
                                 ✓ {partida.vencedor?.nome}
                               </p>
+                              <div className="flex justify-between text-[10px] text-fg-dim mt-2 px-1">
+                                <span>saldo: {(partida.score_a ?? 0) - (partida.score_b ?? 0) > 0 ? "+" : ""}{(partida.score_a ?? 0) - (partida.score_b ?? 0)}</span>
+                                <span>saldo: {(partida.score_b ?? 0) - (partida.score_a ?? 0) > 0 ? "+" : ""}{(partida.score_b ?? 0) - (partida.score_a ?? 0)}</span>
+                              </div>
+                              <button
+                                onClick={() => setEditandoPartida(editandoPartida === partida.id ? null : partida.id)}
+                                className="mt-2 text-[10px] text-fg-dim hover:text-ow-orange transition-colors uppercase tracking-wider"
+                              >
+                                {editandoPartida === partida.id ? "Cancelar" : "Editar"}
+                              </button>
+                              {editandoPartida === partida.id && (
+                                <div className="mt-2">
+                                  <PlacarForm
+                                    partida={partida}
+                                    registrando={registrando}
+                                    onRegistrar={(id, vid, sa, sb) => {
+                                      registrarVencedor(id, vid, sa, sb);
+                                      setEditandoPartida(null);
+                                    }}
+                                  />
+                                </div>
+                              )}
                             </div>
                           ) : partida.time_b.id === null ? (
                             <span className="text-xs text-ow-orange text-center font-semibold uppercase tracking-wider">

@@ -25,6 +25,7 @@ interface Inscricao {
   horarios: string[];
   dias: string[];
   jogadores: Jogador[];
+  fase_atual: string;
 }
 
 const RANKS = [
@@ -352,6 +353,11 @@ export default function AdminInscricoesPage() {
                         {insc.tem_jogador_desclassificado && (
                           <span className="bg-danger/15 text-danger border border-danger/30 text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-wider">
                             ⚠ Desclassificado
+                          </span>
+                        )}
+                        {insc.fase_atual === "eliminado" && (
+                          <span className="bg-danger/15 text-danger border border-danger/30 text-xs px-2 py-0.5 rounded-full font-semibold">
+                            ✕ Eliminado
                           </span>
                         )}
                       </div>

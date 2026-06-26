@@ -340,6 +340,11 @@ export default function PublicoPage() {
                                   ⚠ Desclassificado
                                 </span>
                               )}
+                              {equipe.fase_atual === "eliminado" && (
+                                <span className="bg-danger/15 text-danger border border-danger/30 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                                  ✕ Eliminado
+                                </span>
+                              )}
                             </div>
                             <p className="text-fg-muted text-sm mt-0.5">
                               Capitão · <span className="text-fg">{equipe.nome_capitao}</span>

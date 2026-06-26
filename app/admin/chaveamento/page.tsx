@@ -17,10 +17,76 @@ interface Partida {
   vencedor: Time | null;
   status: string;
   rodada: number;
+  score_a: number | null;  
+  score_b: number | null;  
 }
 
 interface Rodadas {
   [rodada: string]: Partida[];
+}
+
+function PlacarForm({
+  partida,
+  registrando,
+  onRegistrar,
+}: {
+  partida: Partida;
+  registrando: number | null;
+  onRegistrar: (partidaId: number, vencedorId: number, scoreA: number, scoreB: number) => void;
+}) {
+  const [scoreA, setScoreA] = useState("");
+  const [scoreB, setScoreB] = useState("");
+
+  const valido = scoreA !== "" && scoreB !== "" && Number(scoreA) >= 0 && Number(scoreB) >= 0;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Placar */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <p className="text-[10px] text-fg-dim mb-1 truncate">{partida.time_a.nome}</p>
+          <input
+            type="number"
+            min={0}
+            max={9}
+            value={scoreA}
+            onChange={e => setScoreA(e.target.value)}
+            className="w-full px-2 py-1.5 bg-surface-2 border border-line rounded-lg text-white text-center text-sm font-bold focus:outline-none focus:border-ow-orange"
+            placeholder="0"
+          />
+        </div>
+        <span className="text-fg-dim font-bold mt-4">×</span>
+        <div className="flex-1">
+          <p className="text-[10px] text-fg-dim mb-1 truncate">{partida.time_b.nome}</p>
+          <input
+            type="number"
+            min={0}
+            max={9}
+            value={scoreB}
+            onChange={e => setScoreB(e.target.value)}
+            className="w-full px-2 py-1.5 bg-surface-2 border border-line rounded-lg text-white text-center text-sm font-bold focus:outline-none focus:border-ow-orange"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      {/* Botões de vencedor */}
+      <button
+        onClick={() => onRegistrar(partida.id, partida.time_a.id!, Number(scoreA), Number(scoreB))}
+        disabled={registrando === partida.id || !valido}
+        className="w-full py-1.5 px-3 rounded-lg bg-surface-2 hover:bg-ow-blue/20 hover:border-ow-blue border border-line text-fg text-xs font-semibold transition-colors disabled:opacity-40 truncate"
+      >
+        ✓ {partida.time_a.nome}
+      </button>
+      <button
+        onClick={() => onRegistrar(partida.id, partida.time_b.id!, Number(scoreA), Number(scoreB))}
+        disabled={registrando === partida.id || !valido}
+        className="w-full py-1.5 px-3 rounded-lg bg-surface-2 hover:bg-ow-blue/20 hover:border-ow-blue border border-line text-fg text-xs font-semibold transition-colors disabled:opacity-40 truncate"
+      >
+        ✓ {partida.time_b.nome}
+      </button>
+    </div>
+  );
 }
 
 export default function AdminChaveamentoPage() {
@@ -90,7 +156,7 @@ export default function AdminChaveamentoPage() {
     }
   };
 
-  const registrarVencedor = async (partidaId: number, vencedorId: number) => {
+  const registrarVencedor = async (partidaId: number, vencedorId: number, scoreA: number, scoreB: number) => {
     setRegistrando(partidaId);
     setErro("");
     setSucesso("");
@@ -101,7 +167,7 @@ export default function AdminChaveamentoPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
         },
-        body: JSON.stringify({ vencedor_id: vencedorId }),
+        body: JSON.stringify({ vencedor_id: vencedorId, score_a: scoreA, score_b: scoreB }),
       });
       const dados = await res.json();
       if (!res.ok) throw new Error(dados.detail || "Erro ao registrar vencedor.");
@@ -306,32 +372,26 @@ export default function AdminChaveamentoPage() {
                         </div>
 
                         {/* Ações */}
-                        <div className="shrink-0 w-48 flex flex-col gap-2">
+                        <div className="shrink-0 w-56 flex flex-col gap-2">
                           {partida.status === "concluida" ? (
-                            <span className="text-xs text-success text-center font-semibold uppercase tracking-wider">
-                              ✓ {partida.vencedor?.nome}
-                            </span>
+                            <div className="text-center">
+                              <span className="text-display text-2xl font-bold text-ow-orange">
+                                {partida.score_a} × {partida.score_b}
+                              </span>
+                              <p className="text-xs text-success font-semibold mt-1 uppercase tracking-wider">
+                                ✓ {partida.vencedor?.nome}
+                              </p>
+                            </div>
                           ) : partida.time_b.id === null ? (
                             <span className="text-xs text-ow-orange text-center font-semibold uppercase tracking-wider">
                               Avança automaticamente
                             </span>
                           ) : (
-                            <>
-                              <button
-                                onClick={() => registrarVencedor(partida.id, partida.time_a.id!)}
-                                disabled={registrando === partida.id}
-                                className="w-full py-1.5 px-3 rounded-lg bg-surface-2 hover:bg-ow-blue/20 hover:border-ow-blue border border-line text-fg text-xs font-semibold transition-colors disabled:opacity-40 text-left truncate"
-                              >
-                                {registrando === partida.id ? "..." : `✓ ${partida.time_a.nome}`}
-                              </button>
-                              <button
-                                onClick={() => registrarVencedor(partida.id, partida.time_b.id!)}
-                                disabled={registrando === partida.id}
-                                className="w-full py-1.5 px-3 rounded-lg bg-surface-2 hover:bg-ow-blue/20 hover:border-ow-blue border border-line text-fg text-xs font-semibold transition-colors disabled:opacity-40 text-left truncate"
-                              >
-                                {registrando === partida.id ? "..." : `✓ ${partida.time_b.nome}`}
-                              </button>
-                            </>
+                            <PlacarForm
+                              partida={partida}
+                              registrando={registrando}
+                              onRegistrar={registrarVencedor}
+                            />
                           )}
                         </div>
 

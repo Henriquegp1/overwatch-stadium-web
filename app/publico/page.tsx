@@ -112,6 +112,7 @@ export default function PublicoPage() {
   const [grupos, setGrupos] = useState<Grupos>({});
   const [carregando, setCarregando] = useState(true);
   const [streamAtivo, setStreamAtivo] = useState("akiralegacy");
+  const [subAba, setSubAba] = useState<"mata-mata" | "grupos">("mata-mata");
 
   useEffect(() => {
     Promise.all([
@@ -509,51 +510,244 @@ export default function PublicoPage() {
 
             {/* GRUPOS */}
             {aba === "grupos" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {Object.keys(grupos).length === 0 ? (
-                  <p className="text-fg-muted">Fase de grupos ainda não iniciada.</p>
-                ) : (
-                  Object.entries(grupos).map(([grupo, equipes]) => (
-                    <article key={grupo} className="surface-card p-5">
-                      <header className="flex items-center justify-between mb-4">
-                        <h2 className="text-display text-lg font-bold uppercase tracking-wider">
-                          Grupo <span className="text-ow-orange">{grupo}</span>
-                        </h2>
-                        <span className="text-[10px] uppercase tracking-widest text-fg-dim">
-                          {equipes.length} equipes
-                        </span>
-                      </header>
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="text-fg-dim text-[10px] uppercase tracking-widest border-b border-line">
-                            <th className="text-left py-2 font-semibold">#</th>
-                            <th className="text-left py-2 font-semibold">Equipe</th>
-                            <th className="text-center py-2 font-semibold">V</th>
-                            <th className="text-center py-2 font-semibold">D</th>
-                            <th className="text-center py-2 font-semibold">Saldo</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {equipes.map((e, i) => (
-                            <tr
-                              key={i}
-                              className={`border-b border-line/60 last:border-0 ${
-                                i === 0 ? "bg-ow-orange/5" : ""
-                              }`}
-                            >
-                              <td className={`py-2.5 font-display font-bold ${i === 0 ? "text-ow-orange" : "text-fg-dim"}`}>
-                                {i + 1}
-                              </td>
-                              <td className="py-2.5 font-semibold text-fg">{e.nome}</td>
-                              <td className="py-2.5 text-center text-success font-semibold tabular-nums">{e.vitorias}</td>
-                              <td className="py-2.5 text-center text-danger font-semibold tabular-nums">{e.derrotas}</td>
-                              <td className="py-2.5 text-center text-fg-muted tabular-nums">{e.saldo_mapas}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </article>
-                  ))
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            
+                {/* Sub-abas */}
+                <div className="flex gap-1 border-b border-line">
+                  {(["mata-mata", "grupos"] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSubAba(s)}
+                      className={`relative px-5 py-3 text-sm font-semibold uppercase tracking-wider transition-colors ${
+                        subAba === s ? "text-fg" : "text-fg-muted hover:text-fg"
+                      }`}
+                    >
+                      {s === "mata-mata" ? "Mata-mata" : "Fase de Grupos"}
+                      <span
+                        className={`absolute left-3 right-3 -bottom-px h-[3px] rounded-t-full transition-all ${
+                          subAba === s
+                            ? "bg-ow-orange shadow-[0_0_12px_var(--ow-orange-glow)]"
+                            : "bg-transparent"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+            
+                {/* MATA-MATA */}
+                {subAba === "mata-mata" && (() => {
+                  const eliminatorias = partidas.filter((p) => p.fase === "eliminatoria");
+                  const encerradas = eliminatorias.filter((p) => p.status === "concluida" || p.status === "bye");
+                  const pendentes = eliminatorias.filter((p) => p.status !== "concluida" && p.status !== "bye");
+            
+                  if (eliminatorias.length === 0) {
+                    return (
+                      <div className="surface-card rounded-2xl p-12 text-center border border-line-strong">
+                        <p className="text-fg-muted uppercase tracking-wider text-sm font-semibold">
+                          Mata-mata ainda não iniciado.
+                        </p>
+                      </div>
+                    );
+                  }
+            
+                  const totalEnc = encerradas.length;
+                  const totalPend = pendentes.length;
+            
+                  const CardConfrontoMM = ({ p }: { p: Partida }) => {
+                    const concluida = p.status === "concluida" || p.status === "bye";
+                    const isBye = p.time_b === "BYE";
+            
+                    return (
+                      <article className="surface-card p-0 overflow-hidden">
+                        <div className="flex items-stretch">
+                          {/* Número */}
+                          <div className="flex items-center justify-center min-w-[40px] bg-surface-2 border-r border-line">
+                            <span className="text-[10px] font-bold text-fg-dim">#{p.id}</span>
+                          </div>
+            
+                          {/* Times */}
+                          <div className="flex-1 flex flex-col">
+                            {/* Time A */}
+                            <div className={`flex items-center gap-3 px-4 py-3 ${
+                              concluida && p.vencedor === p.time_a ? "bg-success/10" : ""
+                            } ${concluida && p.vencedor !== p.time_a && !isBye ? "opacity-40" : ""}`}>
+                              <div
+                                className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-background shrink-0"
+                                style={{ background: "var(--grad-orange)" }}
+                              >
+                                {p.time_a.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
+                              </div>
+                              <span className={`flex-1 text-sm font-bold uppercase tracking-wide truncate ${
+                                concluida && p.vencedor === p.time_a ? "text-success" : "text-fg"
+                              }`}>
+                                {p.time_a}
+                              </span>
+                              {concluida && (
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border shrink-0 ${
+                                  p.vencedor === p.time_a
+                                    ? "bg-success/15 text-success border-success/30"
+                                    : "text-fg-dim border-line"
+                                }`}>
+                                  {p.vencedor === p.time_a ? "Avança" : "Eliminado"}
+                                </span>
+                              )}
+                            </div>
+            
+                            <div className="h-px bg-line mx-4" />
+            
+                            {/* Time B */}
+                            {isBye ? (
+                              <div className="flex items-center gap-3 px-4 py-3 opacity-30">
+                                <div className="w-7 h-7 rounded-lg bg-surface-2 border border-line shrink-0" />
+                                <span className="text-sm text-fg-dim italic">BYE — passa automaticamente</span>
+                              </div>
+                            ) : (
+                              <div className={`flex items-center gap-3 px-4 py-3 ${
+                                concluida && p.vencedor === p.time_b ? "bg-success/10" : ""
+                              } ${concluida && p.vencedor !== p.time_b ? "opacity-40" : ""}`}>
+                                <div
+                                  className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-background shrink-0"
+                                  style={{ background: "var(--grad-blue)" }}
+                                >
+                                  {p.time_b.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()}
+                                </div>
+                                <span className={`flex-1 text-sm font-bold uppercase tracking-wide truncate ${
+                                  concluida && p.vencedor === p.time_b ? "text-success" : "text-fg"
+                                }`}>
+                                  {p.time_b}
+                                </span>
+                                {concluida && (
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border shrink-0 ${
+                                    p.vencedor === p.time_b
+                                      ? "bg-success/15 text-success border-success/30"
+                                      : "text-fg-dim border-line"
+                                  }`}>
+                                    {p.vencedor === p.time_b ? "Avança" : "Eliminado"}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+            
+                        {/* Footer */}
+                        <div className="flex items-center justify-between px-4 py-2 bg-surface-2 border-t border-line gap-3">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                            concluida
+                              ? "bg-success/15 text-success border-success/30"
+                              : "bg-surface-2 text-fg-muted border-line"
+                          }`}>
+                            {concluida ? "Encerrado" : "Aguardando"}
+                          </span>
+                          <div className="flex items-center gap-3">
+                            {concluida && p.vencedor && (
+                              <span className="text-[10px] text-fg-dim">Classificado: <span className="text-fg font-semibold">{p.vencedor}</span></span>
+                            )}
+                            {!concluida && p.horario_agendado && (
+                              <span className="text-[10px] text-fg-dim">
+                                🕐 {new Date(p.horario_agendado).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            )}
+                            {p.streamer && (
+                              <a
+                                href={`https://twitch.tv/${p.streamer}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-danger/15 hover:bg-danger/25 border border-danger/30 text-danger text-[10px] font-bold rounded-lg transition-colors uppercase tracking-wider"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-danger live-dot" />
+                                {p.streamer}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  };
+            
+                  return (
+                    <div className="space-y-6">
+                      {/* Stats */}
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { val: eliminatorias.length, label: "Confrontos" },
+                          { val: totalEnc, label: "Finalizados", color: "text-success" },
+                          { val: totalPend, label: "Pendentes", color: "text-warning" },
+                        ].map(({ val, label, color }) => (
+                          <div key={label} className="surface-card p-4 text-center">
+                            <p className={`text-display text-2xl font-bold ${color ?? "text-fg"}`}>{val}</p>
+                            <p className="text-[10px] uppercase tracking-widest text-fg-dim mt-1">{label}</p>
+                          </div>
+                        ))}
+                      </div>
+            
+                      {encerradas.length > 0 && (
+                        <section className="space-y-2">
+                          <h3 className="text-[10px] uppercase tracking-[0.2em] text-fg-dim font-semibold px-1">
+                            Encerrados ({encerradas.length})
+                          </h3>
+                          {encerradas.map((p) => <CardConfrontoMM key={p.id} p={p} />)}
+                        </section>
+                      )}
+            
+                      {pendentes.length > 0 && (
+                        <section className="space-y-2">
+                          <h3 className="text-[10px] uppercase tracking-[0.2em] text-fg-dim font-semibold px-1">
+                            Aguardando ({pendentes.length})
+                          </h3>
+                          {pendentes.map((p) => <CardConfrontoMM key={p.id} p={p} />)}
+                        </section>
+                      )}
+                    </div>
+                  );
+                })()}
+            
+                {/* FASE DE GRUPOS */}
+                {subAba === "grupos" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {Object.keys(grupos).length === 0 ? (
+                      <div className="surface-card rounded-2xl p-12 text-center border border-line-strong md:col-span-2">
+                        <p className="text-fg-muted uppercase tracking-wider text-sm font-semibold">
+                          Fase de grupos ainda não iniciada.
+                        </p>
+                      </div>
+                    ) : (
+                      Object.entries(grupos).map(([grupo, equipes]) => (
+                        <article key={grupo} className="surface-card p-5">
+                          <header className="flex items-center justify-between mb-4">
+                            <h2 className="text-display text-lg font-bold uppercase tracking-wider">
+                              Grupo <span className="text-ow-orange">{grupo}</span>
+                            </h2>
+                            <span className="text-[10px] uppercase tracking-widest text-fg-dim">
+                              {equipes.length} equipes
+                            </span>
+                          </header>
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="text-fg-dim text-[10px] uppercase tracking-widest border-b border-line">
+                                <th className="text-left py-2 font-semibold">#</th>
+                                <th className="text-left py-2 font-semibold">Equipe</th>
+                                <th className="text-center py-2 font-semibold">V</th>
+                                <th className="text-center py-2 font-semibold">D</th>
+                                <th className="text-center py-2 font-semibold">Saldo</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {equipes.map((e, i) => (
+                                <tr key={i} className={`border-b border-line/60 last:border-0 ${i === 0 ? "bg-ow-orange/5" : ""}`}>
+                                  <td className={`py-2.5 font-display font-bold ${i === 0 ? "text-ow-orange" : "text-fg-dim"}`}>{i + 1}</td>
+                                  <td className="py-2.5 font-semibold text-fg">{e.nome}</td>
+                                  <td className="py-2.5 text-center text-success font-semibold tabular-nums">{e.vitorias}</td>
+                                  <td className="py-2.5 text-center text-danger font-semibold tabular-nums">{e.derrotas}</td>
+                                  <td className="py-2.5 text-center text-fg-muted tabular-nums">{e.saldo_mapas}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </article>
+                      ))
+                    )}
+                  </div>
                 )}
               </div>
             )}
